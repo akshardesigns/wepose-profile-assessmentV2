@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WEPOSE — Profile Assessment Report Builder</title>
+<link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/css/app.css">
+<link rel="stylesheet" href="/css/report.css">
+<style>
+  /* ---- tambahan kecil khusus index.html: status bar & riwayat ---- */
+  .status-bar{display:flex;align-items:center;gap:8px;padding:0 22px 14px;font-size:12px;color:#7c8c92;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:#c8d0d2;flex-shrink:0;}
+  .status-dot.dirty{background:var(--orange);}
+  .status-dot.saved{background:#3f9d6f;}
+  .toast{position:fixed;bottom:22px;left:22px;background:var(--navy);color:#fff;padding:11px 16px;border-radius:8px;font-size:12.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:999;opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .25s ease;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.error{background:#B23B2E;}
+
+  .history-list{padding:4px 22px 18px;display:flex;flex-direction:column;gap:8px;}
+  .history-empty{font-size:12.5px;color:#9aa7ac;padding:6px 0 12px;}
+  .history-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;}
+  .history-item .hname{font-weight:800;color:var(--navy);font-size:13px;}
+  .history-item .hmeta{color:#7c8c92;margin-top:2px;}
+  .history-item .hbadge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:800;}
+  .history-item .hactions{display:flex;gap:6px;margin-top:8px;}
+  .history-item .hactions button{flex:1;border:none;border-radius:6px;padding:6px 8px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Poppins';}
+  .hbtn-load{background:var(--navy);color:#fff;}
+  .hbtn-del{background:#f6e6e3;color:#B23B2E;}
+  .hbadge-rendah{background:var(--green-fill);color:var(--green-text);}
+  .hbadge-sedang{background:var(--peach-fill);color:var(--peach-text);}
+  .hbadge-tinggi{background:var(--red-fill);color:var(--red-text);}
+  .refresh-row{display:flex;justify-content:space-between;align-items:center;padding:0 22px 8px;}
+  .refresh-row button{background:none;border:none;color:var(--orange);font-family:'Poppins';font-weight:700;font-size:12px;cursor:pointer;}
+  .spinner{display:inline-block;width:12px;height:12px;border:2px solid #dfe6e8;border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media print{ .toast{display:none !important;} }
+
+  /* ---- kontrol ukuran preview ---- */
+  .zoom-bar{
+    display:flex;align-items:center;justify-content:center;gap:4px;
+    max-width:var(--page-w);margin:0 auto 14px;
+    background:#fff;border:1px solid var(--line);border-radius:999px;
+    padding:6px 8px;width:fit-content;box-shadow:0 2px 10px rgba(12,61,79,.06);
+  }
+  .zoom-bar button{
+    border:none;background:#f1f4f5;color:var(--navy);width:26px;height:26px;
+    border-radius:50%;font-family:'Poppins';font-weight:800;font-size:14px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+  .zoom-bar button:hover{background:#e5eaeb;}
+  .zoom-bar button:active{transform:scale(.93);}
+  .zoom-bar .zoom-value{
+    font-family:'Poppins';font-weight:700;font-size:12px;color:var(--navy);
+    width:44px;text-align:center;user-select:none;
+  }
+  .zoom-bar .zoom-fit{
+    border-radius:999px;width:auto;padding:0 10px;font-size:11px;margin-left:4px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ FORM PANEL ============ -->
+  <div class="form-panel">
+    <div class="form-header">
+      <div class="brand"><span class="dot"></span><h1>WEPOSE Profile Builder</h1></div>
+      <p>Isi data di bawah, preview laporan otomatis update di sisi kanan.</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="btnPdf" onclick="cetakPDF()">🖨️ Cetak / Unduh PDF</button>
+      <button class="btn btn-ghost" id="btnSave" onclick="simpanRiwayat()">💾 Simpan</button>
+      <button class="btn btn-ghost" onclick="mulaiBaru()">🆕 Baru</button>
+      <button class="btn btn-ghost" onclick="fillSample()">Isi Contoh</button>
+      <button class="btn btn-ghost" onclick="resetForm()">Reset</button>
+    </div>
+    <div class="status-bar"><span class="status-dot" id="statusDot"></span><span id="statusText">Belum disimpan</span></div>
+
+    <div class="accordion">
+
+      <!-- RIWAYAT -->
+      <details class="section" id="riwayatSection">
+        <summary><span><span class="num">↻</span>Riwayat Tersimpan</span><span class="chev">▶</span></summary>
+        <div class="refresh-row">
+          <span style="font-size:11.5px;color:#9aa7ac;">Data dari Google Sheets</span>
+          <button onclick="muatRiwayat()">🔄 Refresh</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty">Memuat riwayat...</div>
+        </div>
+      </details>
+
+      <!-- COVER -->
+      <details class="section" open>
+        <summary><span><span class="num">1</span>Data Pemohon (Cover)</span><span class="chev">▶</span></summary>
+        <div class="section-body">
+          <div class="field">
+            <label>Nama Pemohon</label>
+            <input type="text" id="c_nama" oninput="render()" placeholder="Nama lengkap sesuai paspor">
+          </div>
+          <div class="field photo-upload">
+            <div class="photo-preview" id="photoPreviewWrap">
+              <svg class="icon" viewBox="0 0 24 24" style="width:55%;height:55%;color:#fff;stroke-width:2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+            </div>
+            <label class="file-btn">Upload Foto
+              <input type="file" accept="image/*" id="c_foto" onchange="handlePhoto(event)">
+            </label>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Umur</label><input type="text" id="c_umur" oninput="render()" placeholder="cth. 38 tahun"></div>
+            <div class="field"><label>Nomor Paspor</label><input type="text" id="c_paspor" oninput="render()" placeholder="cth. E7503067"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Negara Tujuan</label><input type="text" id="c_negara" oninput="render()" placeholder="cth. Prancis"></div>
+            <div class="field"><label>Jenis Visa</label><input type="text" id="c_visa" oninput="render()" placeholder="cth. Schengen C"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Tujuan Perjalanan</label><input type="text" id="c_tujuan" oninput="render()" placeholder="cth. Wisata"></div>
+            <div class="field"><label>Sponsor</label><input type="text" id="c_sponsor" oninput="render()" placeholder="cth. Biaya Sendiri"></div>
+          </div>
+          <div class="field">
+            <label>Tanggal Penilaian</label>
+            <input type="date" id="c_tanggal" oninput="render()">
+            <div class="hint">Masa berlaku otomatis dihitung +3 bulan dari tanggal ini.</div>
+          </div>
+        </div>
+      </details>
+
+      <!-- SKOR KUANTITATIF -->
+      <details class="section">
+        <summary><span><span class="num">2</span>Skor Kuantitatif</span><span class="chev">▶</span></summary>
+        <div class="section-body">
+          <div class="field-row">
+            <div class="field"><label>Pekerjaan (0-22)</label><input type="number" id="q_pekerjaan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+            <div class="field"><label>Skala Usaha (0-22)</label><input type="number" id="q_skala_usaha" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Jabatan (0-22)</label><input type="number" id="q_jabatan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+            <div class="field"><label>Lama Bekerja (0-22)</label><input type="number" id="q_lama_bekerja" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Penghasilan (0-22)</label><input type="number" id="q_penghasilan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+            <div class="field"><label>Bukti Dokumen (0-22)</label><input type="number" id="q_bukti_dokumen" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+          </div>
+          <div class="field">
+            <label>Total Skor (Otomatis)</label>
+            <input type="number" id="q_total_skor" readonly style="background-color: #f1f4f5; font-weight: bold;">
+          </div>
+        </div>
+      </details>
+
+      <!-- PENILAIAN KUALITATIF -->
+      <details class="section">
+        <summary><span><span class="num">3</span>Penilaian Kualitatif</span><span class="chev">▶</span></summary>
+        <div class="section-body">
+          <div class="field-row">
+            <div class="field"><label>Kemampuan Cuti</label>
+              <select id="ql_kemampuan_cuti" oninput="render()">
+                <option value="STRONG">STRONG</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="NEUTRAL">NEUTRAL</option>
+                <option value="WEAK" selected>WEAK</option>
+                <option value="RED FLAG">RED FLAG</option>
+              </select>
+            </div>
+            <div class="field"><label>Tier Katalog</label>
+              <select id="ql_tier_katalog" oninput="render()">
+                <option value="Tier 1">Tier 1</option>
+                <option value="Tier 2">Tier 2</option>
+                <option value="Tier 3" selected>Tier 3</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Konsistensi Dokumen</label><textarea id="ql_konsistensi_dokumen" oninput="render()" placeholder="Analisis konsistensi dokumen pendukung..."></textarea></div>
+          <div class="field"><label>Catatan Lokasi</label><textarea id="ql_catatan_lokasi" oninput="render()" placeholder="Catatan mengenai lokasi usaha/perusahaan..."></textarea></div>
+        </div>
+      </details>
+
+      <!-- KESIMPULAN & REKOMENDASI -->
+      <details class="section">
+        <summary><span><span class="num">4</span>Kesimpulan &amp; Rekomendasi</span><span class="chev">▶</span></summary>
+        <div class="section-body">
+          <div class="field"><label>Kesimpulan</label>
+            <select id="k_kesimpulan" oninput="render()">
+              <option value="STRONG">STRONG</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="NEUTRAL">NEUTRAL</option>
+              <option value="WEAK">WEAK</option>
+              <option value="RED FLAG" selected>RED FLAG</option>
+            </select>
+          </div>
+          <div class="field"><label>Narasi Penilaian</label><textarea id="k_narasi_penilaian" oninput="render()" placeholder="Narasi penilaian profil keseluruhan..."></textarea></div>
+          <div class="field"><label>Rekomendasi Tindakan</label><textarea id="k_rekomendasi" oninput="render()" placeholder="Rekomendasi tindakan yang disarankan (satu poin per baris)..."></textarea></div>
+        </div>
+      </details>
+
+    </div>
+  </div>
+
+  <!-- ============ PREVIEW PANEL ============ -->
+  <div class="preview-panel">
+    <div class="preview-scale-note">Preview — 4 halaman A4. Preview ini di-generate oleh mesin render yang sama persis dengan file PDF yang diunduh.</div>
+    <div class="zoom-bar">
+      <button type="button" onclick="zoomOut()" title="Perkecil">−</button>
+      <span class="zoom-value" id="zoomValue">100%</span>
+      <button type="button" onclick="zoomIn()" title="Perbesar">+</button>
+      <button type="button" class="zoom-fit" onclick="zoomFit()" title="Sesuaikan lebar">Sesuaikan</button>
+      <button type="button" class="zoom-fit" onclick="zoomReset()" title="Ukuran asli">100%</button>
+    </div>
+    <div id="pagesZoomWrap">
+      <div id="pages"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/report.js"></script>
+<script src="/js/app-client.js"></script>
+</body>
+</html>

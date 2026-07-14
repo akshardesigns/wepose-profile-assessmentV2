@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>WEPOSE — Print</title>
+<!-- Font Poppins di-host sendiri (bukan Google Fonts) supaya PDF
+     generation di Vercel tidak tergantung/nunggu jaringan eksternal.
+     Lihat komentar di public/css/fonts.css untuk detail penyebabnya. -->
+<link rel="stylesheet" href="/css/fonts.css">
+<link rel="stylesheet" href="/css/report.css">
+<style>
+  /* print.html tidak butuh app-shell sama sekali — cuma halaman laporan */
+  body{background:#fff;}
+</style>
+</head>
+<body>
+<div id="pages"></div>
+
+<script src="/js/report.js"></script>
+<script>
+(async function () {
+  function getToken() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('token');
+  }
+
+  async function getState() {
+    // Cara baru (Vercel-safe): state di-inject langsung oleh Puppeteer
+    // sebelum halaman ini dimuat, jadi tidak perlu request tambahan.
+    if (window.__WEPOSE_STATE__) return window.__WEPOSE_STATE__;
+
+    // Fallback lama (dipakai kalau print.html dibuka manual dengan ?token=...
+    // saat development lokal single-process).
+    const token = getToken();
+    if (!token) throw new Error('Data laporan tidak ditemukan.');
+    const res = await fetch('/api/render-data/' + encodeURIComponent(token));
+    if (!res.ok) throw new Error('Data render tidak ditemukan (token kedaluwarsa atau salah).');
+    return res.json();
+  }
+
+  async function main() {
+    try {
+      const state = await getState();
+
+      document.getElementById('pages').innerHTML = WeposeReport.renderAllPagesHTML(state);
+
+      // Batas waktu jaga-jaga (safety net): kalau font atau gambar
+      // butuh waktu tidak wajar lama (misal foto profil dari URL
+      // eksternal yang lambat/mati), JANGAN sampai ini menggantung
+      // selamanya dan bikin Puppeteer timeout tanpa pesan yang jelas.
+      // Setelah 8 detik, lanjut saja apa adanya — hasil PDF mungkin
+      // ada elemen yang belum sempurna, tapi tetap ter-generate.
+      function withTimeout(promise, ms) {
+        return Promise.race([
+          promise,
+          new Promise(resolve => setTimeout(resolve, ms))
+        ]);
+      }
+
+      // tunggu font + gambar (logo/spiral/gajah/foto) selesai dimuat
+      if (document.fonts && document.fonts.ready) {
+        await withTimeout(document.fonts.ready.catch(() => {}), 8000);
+      }
+      await withTimeout(WeposeReport.waitForImages(document), 8000);
+
+      // beri waktu sedikit biar layout benar-benar settle sebelum diukur
+      await new Promise(r => setTimeout(r, 100));
+      WeposeReport.autofitAll(document);
+      await new Promise(r => setTimeout(r, 100));
+
+      window.__PDF_READY__ = true;
+    } catch (err) {
+      console.error(err);
+      document.body.innerHTML = '<p style="padding:20px;font-family:sans-serif;">Gagal render: ' + (err && err.message ? err.message : err) + '</p>';
+      window.__PDF_READY__ = true;
+      window.__PDF_ERROR__ = String(err && err.message ? err.message : err);
+    }
+  }
+
+  main();
+})();
+</script>
+</body>
+</html>
