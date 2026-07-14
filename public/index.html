@@ -129,71 +129,71 @@
         </div>
       </details>
 
-      <!-- DIMENSI 1 -->
+      <!-- SKOR KUANTITATIF -->
       <details class="section">
-        <summary><span><span class="num">2</span>Dimensi I — Dokumen Pekerjaan</span><span class="chev">▶</span></summary>
-        <div class="section-body">
-          <div class="field"><label>Temuan</label><textarea id="d1_temuan" oninput="render()" placeholder="Ringkasan temuan mengenai pekerjaan pemohon..."></textarea></div>
-          <div class="field"><label>Kekuatan</label><textarea id="d1_kekuatan" oninput="render()" placeholder="1 poin per baris"></textarea><div class="hint">Satu poin per baris. Baris berupa "1. teks" akan tampil sebagai sub-list bernomor.</div></div>
-          <div class="field"><label>Kelemahan</label><textarea id="d1_kelemahan" oninput="render()" placeholder="1 poin per baris"></textarea></div>
-          <div class="field"><label>Dimata Kedutaan</label><textarea id="d1_dimata" oninput="render()" placeholder="Bagaimana petugas visa akan memandang profil ini..."></textarea></div>
-          <div class="field"><label>Catatan Penutup</label><textarea id="d1_catatan" oninput="render()" placeholder="Kalimat penutup singkat untuk halaman ini"></textarea></div>
-        </div>
-      </details>
-
-      <!-- DIMENSI 2 -->
-      <details class="section">
-        <summary><span><span class="num">3</span>Dimensi II — Stabilitas Finansial</span><span class="chev">▶</span></summary>
-        <div class="section-body">
-          <div class="field"><label>Temuan</label><textarea id="d2_temuan" oninput="render()"></textarea></div>
-          <div class="field"><label>Kekuatan</label><textarea id="d2_kekuatan" oninput="render()"></textarea></div>
-          <div class="field"><label>Kelemahan</label><textarea id="d2_kelemahan" oninput="render()"></textarea></div>
-          <div class="field"><label>Dimata Kedutaan</label><textarea id="d2_dimata" oninput="render()"></textarea></div>
-          <div class="field"><label>Catatan Penutup</label><textarea id="d2_catatan" oninput="render()"></textarea></div>
-        </div>
-      </details>
-
-      <!-- DIMENSI 3 -->
-      <details class="section">
-        <summary><span><span class="num">4</span>Dimensi III — History Perjalanan</span><span class="chev">▶</span></summary>
-        <div class="section-body">
-          <div class="field"><label>Temuan</label><textarea id="d3_temuan" oninput="render()"></textarea></div>
-          <div class="field"><label>Kekuatan</label><textarea id="d3_kekuatan" oninput="render()"></textarea></div>
-          <div class="field"><label>Kelemahan</label><textarea id="d3_kelemahan" oninput="render()"></textarea></div>
-          <div class="field"><label>Dimata Kedutaan</label><textarea id="d3_dimata" oninput="render()"></textarea></div>
-          <div class="field"><label>Catatan Penutup</label><textarea id="d3_catatan" oninput="render()"></textarea></div>
-        </div>
-      </details>
-
-      <!-- DIMENSI 4 -->
-      <details class="section">
-        <summary><span><span class="num">5</span>Dimensi IV — Hubungan / Ties</span><span class="chev">▶</span></summary>
-        <div class="section-body">
-          <div class="field"><label>Temuan</label><textarea id="d4_temuan" oninput="render()"></textarea></div>
-          <div class="field"><label>Kekuatan</label><textarea id="d4_kekuatan" oninput="render()"></textarea></div>
-          <div class="field"><label>Kelemahan</label><textarea id="d4_kelemahan" oninput="render()"></textarea></div>
-          <div class="field"><label>Dimata Kedutaan</label><textarea id="d4_dimata" oninput="render()"></textarea></div>
-          <div class="field"><label>Catatan Penutup</label><textarea id="d4_catatan" oninput="render()"></textarea></div>
-        </div>
-      </details>
-
-      <!-- KESIMPULAN -->
-      <details class="section">
-        <summary><span><span class="num">6</span>Kesimpulan</span><span class="chev">▶</span></summary>
+        <summary><span><span class="num">2</span>Skor Kuantitatif</span><span class="chev">▶</span></summary>
         <div class="section-body">
           <div class="field-row">
-            <div class="field"><label>Skor Keseluruhan</label><input type="text" id="k_skor" oninput="render()" placeholder="cth. 78/100"></div>
-            <div class="field"><label>Tingkat Risiko</label>
-              <select id="k_risiko" oninput="render()">
-                <option value="Rendah">Rendah</option>
-                <option value="Sedang" selected>Sedang</option>
-                <option value="Tinggi">Tinggi</option>
+            <div class="field"><label>Pekerjaan (0-22)</label><input type="number" id="q_pekerjaan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+            <div class="field"><label>Skala Usaha (0-22)</label><input type="number" id="q_skala_usaha" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Jabatan (0-22)</label><input type="number" id="q_jabatan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+            <div class="field"><label>Lama Bekerja (0-22)</label><input type="number" id="q_lama_bekerja" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Penghasilan (0-22)</label><input type="number" id="q_penghasilan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+            <div class="field"><label>Bukti Dokumen (0-22)</label><input type="number" id="q_bukti_dokumen" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+          </div>
+          <div class="field">
+            <label>Total Skor (Otomatis)</label>
+            <input type="number" id="q_total_skor" readonly style="background-color: #f1f4f5; font-weight: bold;">
+          </div>
+        </div>
+      </details>
+
+      <!-- PENILAIAN KUALITATIF -->
+      <details class="section">
+        <summary><span><span class="num">3</span>Penilaian Kualitatif</span><span class="chev">▶</span></summary>
+        <div class="section-body">
+          <div class="field-row">
+            <div class="field"><label>Kemampuan Cuti</label>
+              <select id="ql_kemampuan_cuti" oninput="render()">
+                <option value="STRONG">STRONG</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="NEUTRAL">NEUTRAL</option>
+                <option value="WEAK" selected>WEAK</option>
+                <option value="RED FLAG">RED FLAG</option>
+              </select>
+            </div>
+            <div class="field"><label>Tier Katalog</label>
+              <select id="ql_tier_katalog" oninput="render()">
+                <option value="Tier 1">Tier 1</option>
+                <option value="Tier 2">Tier 2</option>
+                <option value="Tier 3" selected>Tier 3</option>
               </select>
             </div>
           </div>
-          <div class="field"><label>Ringkasan Umum</label><textarea id="k_ringkasan" oninput="render()" placeholder="Ringkasan menyeluruh atas profil pemohon..."></textarea></div>
-          <div class="field"><label>Rekomendasi Tindakan</label><textarea id="k_rekomendasi" oninput="render()" placeholder="1 poin per baris"></textarea></div>
-          <div class="field"><label>Catatan Penutup</label><textarea id="k_catatan" oninput="render()" placeholder="Disclaimer / catatan akhir"></textarea></div>
+          <div class="field"><label>Konsistensi Dokumen</label><textarea id="ql_konsistensi_dokumen" oninput="render()" placeholder="Analisis konsistensi dokumen pendukung..."></textarea></div>
+          <div class="field"><label>Catatan Lokasi</label><textarea id="ql_catatan_lokasi" oninput="render()" placeholder="Catatan mengenai lokasi usaha/perusahaan..."></textarea></div>
+        </div>
+      </details>
+
+      <!-- KESIMPULAN & REKOMENDASI -->
+      <details class="section">
+        <summary><span><span class="num">4</span>Kesimpulan &amp; Rekomendasi</span><span class="chev">▶</span></summary>
+        <div class="section-body">
+          <div class="field"><label>Kesimpulan</label>
+            <select id="k_kesimpulan" oninput="render()">
+              <option value="STRONG">STRONG</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="NEUTRAL">NEUTRAL</option>
+              <option value="WEAK">WEAK</option>
+              <option value="RED FLAG" selected>RED FLAG</option>
+            </select>
+          </div>
+          <div class="field"><label>Narasi Penilaian</label><textarea id="k_narasi_penilaian" oninput="render()" placeholder="Narasi penilaian profil keseluruhan..."></textarea></div>
+          <div class="field"><label>Rekomendasi Tindakan</label><textarea id="k_rekomendasi" oninput="render()" placeholder="Rekomendasi tindakan yang disarankan (satu poin per baris)..."></textarea></div>
         </div>
       </details>
 
@@ -202,7 +202,7 @@
 
   <!-- ============ PREVIEW PANEL ============ -->
   <div class="preview-panel">
-    <div class="preview-scale-note">Preview — 6 halaman A4. Preview ini di-generate oleh mesin render yang sama persis dengan file PDF yang diunduh.</div>
+    <div class="preview-scale-note">Preview — 4 halaman A4. Preview ini di-generate oleh mesin render yang sama persis dengan file PDF yang diunduh.</div>
     <div class="zoom-bar">
       <button type="button" onclick="zoomOut()" title="Perkecil">−</button>
       <span class="zoom-value" id="zoomValue">100%</span>

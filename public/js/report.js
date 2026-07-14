@@ -67,8 +67,15 @@
         nama: '', umur: '', paspor: '', negara: '', visa: '',
         tujuan: '', sponsor: '', tanggal: '', fotoDataUrl: null
       },
-      dims: [emptyDim(), emptyDim(), emptyDim(), emptyDim()],
-      kesimpulan: { skor: '', risiko: 'Sedang', ringkasan: '', rekomendasi: '', catatan: '' }
+      skor_kuantitatif: {
+        pekerjaan: 0, skala_usaha: 0, jabatan: 0, lama_bekerja: 0, penghasilan: 0, bukti_dokumen: 0
+      },
+      penilaian_kualitatif: {
+        kemampuan_cuti: 'WEAK', konsistensi_dokumen: '', catatan_lokasi: '', tier_katalog: 'Tier 3'
+      },
+      kesimpulan: {
+        value: 'RED FLAG', risiko: 'RED FLAG', total_skor: 0, narasi_penilaian: '', rekomendasi: ''
+      }
     };
   }
 
@@ -133,40 +140,136 @@
   </div>`;
   }
 
-  function dimPageHTML(state, idx, pageNum, totalPages) {
-    const d = (state.dims && state.dims[idx]) || emptyDim();
+  function getStatusLabelAndClass(val) {
+    if (val >= 22) return { label: 'KUAT', className: 'status-kuat' };
+    if (val >= 10) return { label: 'CUKUP', className: 'status-cukup' };
+    if (val >= 1) return { label: 'PERLU PERHATIAN', className: 'status-perhatian' };
+    return { label: 'KRITIS', className: 'status-kritis' };
+  }
+
+  function renderStatusBar(label, value) {
+    const maxVal = 22;
+    const clampedVal = Math.min(maxVal, Math.max(0, value));
+    const pct = Math.round((clampedVal / maxVal) * 100);
+    const { label: statusLabel, className } = getStatusLabelAndClass(value);
+    
+    return `
+      <div class="status-bar-row">
+        <div class="status-bar-lbl">${esc(label)}</div>
+        <div class="status-bar-track">
+          <div class="status-bar-fill ${className}" style="width: ${pct}%"></div>
+        </div>
+        <div class="status-bar-val">${clampedVal}</div>
+        <div class="status-bar-badge-wrap">
+          <span class="status-badge ${className}">${statusLabel}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function getKualitatifBadgeClass(val) {
+    if (val === 'STRONG') return 'badge-rendah';
+    if (val === 'RED FLAG') return 'badge-tinggi';
+    return 'badge-sedang';
+  }
+
+  function skorKuantitatifPageHTML(state, pageNum, totalPages) {
     const paspor = (state.cover && state.cover.paspor) || '(isi nomor disini)';
+    const sq = state.skor_kuantitatif || {};
+    
+    const pekerjaan = sq.pekerjaan !== undefined ? sq.pekerjaan : 0;
+    const skala_usaha = sq.skala_usaha !== undefined ? sq.skala_usaha : 0;
+    const jabatan = sq.jabatan !== undefined ? sq.jabatan : 0;
+    const lama_bekerja = sq.lama_bekerja !== undefined ? sq.lama_bekerja : 0;
+    const penghasilan = sq.penghasilan !== undefined ? sq.penghasilan : 0;
+    const bukti_dokumen = sq.bukti_dokumen !== undefined ? sq.bukti_dokumen : 0;
+    
+    const k = state.kesimpulan || {};
+    const total_skor = k.total_skor !== undefined ? k.total_skor : (pekerjaan + skala_usaha + jabatan + lama_bekerja + penghasilan + bukti_dokumen);
+    const { label: totalStatusLabel, className: totalClassName } = getStatusLabelAndClass(total_skor);
 
     return `
-  <div class="page dim" id="pageDim${idx}">
+  <div class="page dim" id="pageSkorKuantitatif">
     <div class="page-inner">
       <div class="page-head">
         <div class="eyebrow-sm">PROFILE ASSESSMENT REPORT</div>
         <div class="passport-chip">${iconDoc()}<div>NOMOR PASSPOR<br><b>${esc(paspor)}</b></div></div>
       </div>
       <div class="section-title-row">
-        <div class="roman-pill">${ROMAN[idx]}</div>
-        <h2>${idx + 1}. ${esc(DIM_NAMES[idx])}</h2>
+        <div class="roman-pill">I</div>
+        <h2>1. Skor Kuantitatif</h2>
       </div>
 
-      <div class="box box-temuan">
-        <h3>TEMUAN</h3>
-        ${paragraph(d.temuan)}
-      </div>
-      <div class="box box-kekuatan">
-        <h3>KEKUATAN</h3>
-        ${bulletList(d.kekuatan)}
-      </div>
-      <div class="box box-kelemahan">
-        <h3>KELEMAHAN</h3>
-        ${bulletList(d.kelemahan)}
-      </div>
-      <div class="box box-dimata">
-        <h3>DIMATA KEDUTAAN</h3>
-        ${paragraph(d.dimata)}
+      <div class="box box-temuan" style="margin-bottom: 6mm; padding: 6mm 7mm;">
+        <h3 style="margin-bottom: 4mm;">Rincian Nilai Kuantitatif</h3>
+        <div class="status-bars-container">
+          ${renderStatusBar('Kekuatan Pekerjaan', pekerjaan)}
+          ${renderStatusBar('Skala Usaha', skala_usaha)}
+          ${renderStatusBar('Tingkat Jabatan', jabatan)}
+          ${renderStatusBar('Lama Bekerja', lama_bekerja)}
+          ${renderStatusBar('Kekuatan Penghasilan', penghasilan)}
+          ${renderStatusBar('Bukti Dokumen Pendukung', bukti_dokumen)}
+        </div>
       </div>
 
-      ${d.catatan && d.catatan.trim() ? `<div class="dim-closing">${esc(d.catatan).replace(/\n/g, '<br>')}</div>` : ''}
+      <div class="stat-row">
+        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 6mm 8mm;">
+          <div>
+            <div class="lbl" style="margin-bottom:1mm;">Total Skor Kuantitatif</div>
+            <div class="val" style="font-size:24pt; line-height:1.1;">${total_skor} <span style="font-size:12pt; color:#7c8c92; font-weight:normal;">/ 132</span></div>
+          </div>
+          <div>
+            <div class="lbl" style="text-align:right; margin-bottom:2mm;">Tingkat Kesiapan</div>
+            <span class="status-badge ${totalClassName}" style="padding:2mm 5mm; font-size:11pt; font-weight:800; border-radius:20mm; display:inline-block;">${totalStatusLabel}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="page-footer"><span>WEPOSE</span><span>Pages ${pageNum} of ${totalPages}</span></div>
+  </div>`;
+  }
+
+  function penilaianKualitatifPageHTML(state, pageNum, totalPages) {
+    const paspor = (state.cover && state.cover.paspor) || '(isi nomor disini)';
+    const pk = state.penilaian_kualitatif || {};
+    const kemampuanCuti = pk.kemampuan_cuti || 'WEAK';
+    const tierKatalog = pk.tier_katalog || 'Tier 3';
+
+    return `
+  <div class="page dim" id="pagePenilaianKualitatif">
+    <div class="page-inner">
+      <div class="page-head">
+        <div class="eyebrow-sm">PROFILE ASSESSMENT REPORT</div>
+        <div class="passport-chip">${iconDoc()}<div>NOMOR PASSPOR<br><b>${esc(paspor)}</b></div></div>
+      </div>
+      <div class="section-title-row">
+        <div class="roman-pill">II</div>
+        <h2>2. Penilaian Kualitatif &amp; Kategori</h2>
+      </div>
+
+      <div class="stat-row" style="margin-bottom: 5mm;">
+        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 4.5mm 6mm;">
+          <div>
+            <div class="lbl" style="margin-bottom:1.5mm;">Kemampuan Cuti</div>
+            <span class="badge ${getKualitatifBadgeClass(kemampuanCuti)}">${esc(kemampuanCuti)}</span>
+          </div>
+          <div style="text-align:right;">
+            <div class="lbl" style="margin-bottom:1.5mm;">Tier Katalog</div>
+            <span class="badge badge-sedang" style="background:#eef1f2; color:var(--navy); font-weight:800;">${esc(tierKatalog)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="box box-temuan" style="margin-bottom: 4mm;">
+        <h3>KONSISTENSI DOKUMEN</h3>
+        ${paragraph(pk.konsistensi_dokumen)}
+      </div>
+
+      <div class="box box-dimata" style="margin-bottom: 4mm;">
+        <h3>CATATAN LOKASI</h3>
+        ${paragraph(pk.catatan_lokasi)}
+      </div>
 
     </div>
     <div class="page-footer"><span>WEPOSE</span><span>Pages ${pageNum} of ${totalPages}</span></div>
@@ -176,9 +279,7 @@
   function kesimpulanPageHTML(state, pageNum, totalPages) {
     const k = state.kesimpulan || {};
     const paspor = (state.cover && state.cover.paspor) || '(isi nomor disini)';
-    const skor = k.skor || '—';
-    const risiko = k.risiko || 'Sedang';
-    const badgeClass = risiko === 'Rendah' ? 'badge-rendah' : (risiko === 'Tinggi' ? 'badge-tinggi' : 'badge-sedang');
+    const kesimpulanVal = k.value || k.risiko || 'WEAK';
 
     return `
   <div class="page dim" id="pageKesimpulan">
@@ -189,24 +290,24 @@
       </div>
       <div class="section-title-row">
         <div class="roman-pill">✓</div>
-        <h2>Kesimpulan &amp; Rekomendasi</h2>
+        <h2>3. Analisis, Kesimpulan &amp; Rekomendasi</h2>
       </div>
 
-      <div class="stat-row">
-        <div class="stat-card"><div class="lbl">Skor Keseluruhan</div><div class="val">${esc(skor)}</div></div>
-        <div class="stat-card"><div class="lbl">Tingkat Risiko</div><div class="val" style="margin-top:1mm;"><span class="badge ${badgeClass}">${esc(risiko)}</span></div></div>
+      <div class="stat-row" style="margin-bottom: 5mm;">
+        <div class="stat-card" style="padding: 4mm 6mm; display:flex; align-items:center; justify-content:space-between;">
+          <div class="lbl" style="margin:0;">Kesimpulan Profil</div>
+          <span class="badge ${getKualitatifBadgeClass(kesimpulanVal)}" style="font-size:10.5pt; padding:2mm 6mm;">${esc(kesimpulanVal)}</span>
+        </div>
       </div>
 
-      <div class="box box-temuan">
-        <h3>RINGKASAN UMUM</h3>
-        ${paragraph(k.ringkasan)}
+      <div class="box box-temuan" style="margin-bottom: 4mm;">
+        <h3>NARASI PENILAIAN</h3>
+        ${paragraph(k.narasi_penilaian)}
       </div>
-      <div class="box box-kekuatan">
+      <div class="box box-kekuatan" style="margin-bottom: 4mm;">
         <h3>REKOMENDASI TINDAKAN</h3>
         ${bulletList(k.rekomendasi)}
       </div>
-
-      ${k.catatan && k.catatan.trim() ? `<div class="dim-closing">${esc(k.catatan).replace(/\n/g, '<br>')}</div>` : ''}
 
     </div>
     <div class="page-footer"><span>WEPOSE</span><span>Pages ${pageNum} of ${totalPages}</span></div>
@@ -214,11 +315,12 @@
   }
 
   function renderAllPagesHTML(state) {
-    const total = 6;
+    const total = 4;
     let html = '';
     html += coverPageHTML(state);
-    for (let i = 0; i < 4; i++) html += dimPageHTML(state, i, i + 2, total);
-    html += kesimpulanPageHTML(state, 6, total);
+    html += skorKuantitatifPageHTML(state, 2, total);
+    html += penilaianKualitatifPageHTML(state, 3, total);
+    html += kesimpulanPageHTML(state, 4, total);
     return html;
   }
 
@@ -282,7 +384,7 @@
     IDN_MONTHS, ROMAN, DIM_NAMES,
     esc, fmtDateID, addMonths, bulletList, paragraph,
     buildEmptyState, emptyDim,
-    coverPageHTML, dimPageHTML, kesimpulanPageHTML,
+    coverPageHTML, skorKuantitatifPageHTML, penilaianKualitatifPageHTML, kesimpulanPageHTML,
     renderAllPagesHTML, autofitAll, waitForImages
   };
 })(typeof window !== 'undefined' ? window : globalThis);

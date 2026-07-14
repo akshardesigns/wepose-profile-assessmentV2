@@ -164,6 +164,72 @@ html,body{margin:0;padding:0;background:#EEF2F3;font-family:'Poppins',sans-serif
 
 /* ---------- SVG placeholder for empty photo ---------- */
 
+/* ---------- WEPOSE v3 Status Bars & Badges ---------- */
+.status-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5mm;
+}
+.status-bar-row {
+  display: flex;
+  align-items: center;
+}
+.status-bar-lbl {
+  width: 48mm;
+  font-weight: 700;
+  font-size: 8.5pt;
+  color: var(--navy);
+}
+.status-bar-track {
+  flex: 1;
+  height: 3mm;
+  background: #eef2f3;
+  border-radius: 1.5mm;
+  margin: 0 4mm;
+  overflow: hidden;
+  position: relative;
+}
+.status-bar-fill {
+  height: 100%;
+  border-radius: 1.5mm;
+  transition: width 0.3s ease;
+}
+.status-bar-val {
+  width: 10mm;
+  font-weight: 800;
+  font-size: 10pt;
+  text-align: right;
+  color: var(--navy);
+}
+.status-bar-badge-wrap {
+  width: 35mm;
+  text-align: right;
+}
+.status-badge {
+  display: inline-block;
+  padding: 1.2mm 3.5mm;
+  border-radius: 20mm;
+  font-size: 8pt;
+  font-weight: 800;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  width: 32mm;
+  box-sizing: border-box;
+}
+
+/* Status Threshold Styling (KUAT, CUKUP, PERLU PERHATIAN, KRITIS) */
+.status-bar-fill.status-kuat { background: #3f9d6f; }
+.status-badge.status-kuat { background: #e8f5e9; color: #1b5e20; }
+
+.status-bar-fill.status-cukup { background: #d97706; }
+.status-badge.status-cukup { background: #fef3c7; color: #b45309; }
+
+.status-bar-fill.status-perhatian { background: #ea580c; }
+.status-badge.status-perhatian { background: #ffedd5; color: #c2410c; }
+
+.status-bar-fill.status-kritis { background: #dc2626; }
+.status-badge.status-kritis { background: #fee2e2; color: #b91c1c; }
+
 /* ---------- PRINT ---------- */
 @media print{
   body{background:#fff;}

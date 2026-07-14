@@ -42,26 +42,68 @@ window.addEventListener('resize', () => { /* biarkan user set ulang manual via t
 const DIM_KEYS = ['temuan', 'kekuatan', 'kelemahan', 'dimata', 'catatan'];
 
 function val(id) { return document.getElementById(id).value; }
-function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v || ''; }
+function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v !== undefined && v !== null ? v : ''; }
+
+function getClampedNum(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  let valStr = el.value.trim();
+  if (valStr === '') return 0;
+  let v = parseInt(valStr);
+  if (isNaN(v)) return 0;
+  if (v > 22) {
+    v = 22;
+    el.value = 22;
+  } else if (v < 0) {
+    v = 0;
+    el.value = 0;
+  }
+  return v;
+}
+
+function calculateTotalSkor() {
+  const pekerjaan = getClampedNum('q_pekerjaan');
+  const skala_usaha = getClampedNum('q_skala_usaha');
+  const jabatan = getClampedNum('q_jabatan');
+  const lama_bekerja = getClampedNum('q_lama_bekerja');
+  const penghasilan = getClampedNum('q_penghasilan');
+  const bukti_dokumen = getClampedNum('q_bukti_dokumen');
+  
+  const total = pekerjaan + skala_usaha + jabatan + lama_bekerja + penghasilan + bukti_dokumen;
+  setVal('q_total_skor', total);
+}
 
 /* ---------------- state <-> form ---------------- */
 function buildStateFromForm() {
-  const dims = [];
-  for (let i = 1; i <= 4; i++) {
-    const dim = {};
-    DIM_KEYS.forEach(k => { dim[k] = val(`d${i}_${k}`); });
-    dims.push(dim);
-  }
+  const pekerjaan = getClampedNum('q_pekerjaan');
+  const skala_usaha = getClampedNum('q_skala_usaha');
+  const jabatan = getClampedNum('q_jabatan');
+  const lama_bekerja = getClampedNum('q_lama_bekerja');
+  const penghasilan = getClampedNum('q_penghasilan');
+  const bukti_dokumen = getClampedNum('q_bukti_dokumen');
+  const total_skor = pekerjaan + skala_usaha + jabatan + lama_bekerja + penghasilan + bukti_dokumen;
+
   return {
     cover: {
       nama: val('c_nama'), umur: val('c_umur'), paspor: val('c_paspor'),
       negara: val('c_negara'), visa: val('c_visa'), tujuan: val('c_tujuan'),
       sponsor: val('c_sponsor'), tanggal: val('c_tanggal'), fotoDataUrl: photoDataUrl
     },
-    dims,
+    skor_kuantitatif: {
+      pekerjaan, skala_usaha, jabatan, lama_bekerja, penghasilan, bukti_dokumen
+    },
+    penilaian_kualitatif: {
+      kemampuan_cuti: val('ql_kemampuan_cuti'),
+      konsistensi_dokumen: val('ql_konsistensi_dokumen'),
+      catatan_lokasi: val('ql_catatan_lokasi'),
+      tier_katalog: val('ql_tier_katalog')
+    },
     kesimpulan: {
-      skor: val('k_skor'), risiko: val('k_risiko'),
-      ringkasan: val('k_ringkasan'), rekomendasi: val('k_rekomendasi'), catatan: val('k_catatan')
+      value: val('k_kesimpulan'),
+      risiko: val('k_kesimpulan'), // for sheets.js compatibility
+      total_skor: total_skor,
+      narasi_penilaian: val('k_narasi_penilaian'),
+      rekomendasi: val('k_rekomendasi')
     }
   };
 }
@@ -73,16 +115,26 @@ function loadStateToForm(state) {
   setVal('c_sponsor', c.sponsor); setVal('c_tanggal', c.tanggal);
   photoDataUrl = c.fotoDataUrl || null;
 
-  const dims = state.dims || [];
-  for (let i = 0; i < 4; i++) {
-    const dim = dims[i] || {};
-    DIM_KEYS.forEach(k => setVal(`d${i + 1}_${k}`, dim[k]));
-  }
+  const sq = state.skor_kuantitatif || {};
+  setVal('q_pekerjaan', sq.pekerjaan !== undefined ? sq.pekerjaan : 0);
+  setVal('q_skala_usaha', sq.skala_usaha !== undefined ? sq.skala_usaha : 0);
+  setVal('q_jabatan', sq.jabatan !== undefined ? sq.jabatan : 0);
+  setVal('q_lama_bekerja', sq.lama_bekerja !== undefined ? sq.lama_bekerja : 0);
+  setVal('q_penghasilan', sq.penghasilan !== undefined ? sq.penghasilan : 0);
+  setVal('q_bukti_dokumen', sq.bukti_dokumen !== undefined ? sq.bukti_dokumen : 0);
+
+  const pk = state.penilaian_kualitatif || {};
+  document.getElementById('ql_kemampuan_cuti').value = pk.kemampuan_cuti || 'WEAK';
+  setVal('ql_konsistensi_dokumen', pk.konsistensi_dokumen);
+  setVal('ql_catatan_lokasi', pk.catatan_lokasi);
+  document.getElementById('ql_tier_katalog').value = pk.tier_katalog || 'Tier 3';
 
   const k = state.kesimpulan || {};
-  setVal('k_skor', k.skor);
-  document.getElementById('k_risiko').value = k.risiko || 'Sedang';
-  setVal('k_ringkasan', k.ringkasan); setVal('k_rekomendasi', k.rekomendasi); setVal('k_catatan', k.catatan);
+  document.getElementById('k_kesimpulan').value = k.value || k.risiko || 'WEAK';
+  setVal('k_narasi_penilaian', k.narasi_penilaian);
+  setVal('k_rekomendasi', k.rekomendasi);
+
+  calculateTotalSkor();
 }
 
 /* ---------------- live preview ---------------- */
@@ -157,7 +209,9 @@ async function muatRiwayat() {
       return;
     }
     list.innerHTML = rows.map(r => {
-      const badgeClass = r.risiko === 'Rendah' ? 'hbadge-rendah' : (r.risiko === 'Tinggi' ? 'hbadge-tinggi' : 'hbadge-sedang');
+      let badgeClass = 'hbadge-sedang';
+      if (r.risiko === 'STRONG') badgeClass = 'hbadge-rendah';
+      else if (r.risiko === 'RED FLAG' || r.risiko === 'WEAK') badgeClass = 'hbadge-tinggi';
       return `
         <div class="history-item">
           <div class="hname">${escapeHtml(r.nama || '(tanpa nama)')}</div>
@@ -287,43 +341,33 @@ function fillSample() {
   setVal('c_sponsor', 'Biaya Sendiri');
   setVal('c_tanggal', new Date().toISOString().slice(0, 10));
 
-  setVal('d1_temuan', 'Pemohon bekerja di PT. BPR Bank Wonosobo (BUMD) sebagai Head of Funding, Education and Financial Literacy Division. Perusahaan merupakan perusahaan berskala besar, dan pemohon telah bekerja secara konsisten selama 10 tahun. Hingga saat ini, dokumen pendukung pekerjaan yang akan dilampirkan masih belum disebutkan sehingga perlu dipastikan kelengkapannya sebelum pengajuan visa.');
-  setVal('d1_kekuatan', 'Pemohon memiliki masa kerja yang sangat stabil, yaitu selama 10 tahun di perusahaan yang sama. Hal ini menunjukkan loyalitas serta kestabilan karier.\nBekerja di PT. BPR Bank Wonosobo (BUMD) menjadi nilai tambah karena merupakan perusahaan milik pemerintah daerah yang memiliki struktur organisasi dan kredibilitas yang baik.\nJabatan sebagai Head of Funding, Education and Financial Literacy Division menunjukkan bahwa pemohon menduduki posisi manajerial dengan tanggung jawab yang cukup tinggi.');
-  setVal('d1_kelemahan', 'Dokumen pendukung pekerjaan belum disebutkan sehingga belum dapat dipastikan apakah bukti yang akan dilampirkan sudah memadai.\nUntuk memperkuat aplikasi visa, disarankan melampirkan:\n1. Surat Keterangan Kerja.\n2. Surat Izin Cuti.\n3. Slip Gaji 3-6 bulan terakhir.\n4. SK Pengangkatan atau bukti jabatan (apabila tersedia).\n5. ID Card karyawan atau dokumen pendukung lainnya.');
-  setVal('d1_dimata', 'Kedutaan akan menilai apakah pekerjaan pemohon menunjukkan stabilitas karier, sumber penghasilan yang tetap, serta ikatan yang kuat dengan Indonesia. Masa kerja selama 10 tahun serta jabatan manajerial merupakan nilai yang sangat positif dan menunjukkan kecil kemungkinan pemohon meninggalkan pekerjaannya untuk menetap di wilayah Schengen. Namun demikian, penilaian tersebut harus didukung dengan dokumen pekerjaan yang lengkap dan konsisten, karena petugas visa tidak hanya melihat jabatan atau lama bekerja, tetapi juga memastikan seluruh dokumen dapat membuktikan hubungan kerja yang masih aktif dan adanya kewajiban pemohon untuk kembali bekerja setelah perjalanan selesai.');
-  setVal('d1_catatan', 'Dokumen yang lengkap akan mempermudah pihak kedutaan dalam memverifikasi status pekerjaan pemohon.');
+  setVal('q_pekerjaan', 2);
+  setVal('q_skala_usaha', 1);
+  setVal('q_jabatan', 4);
+  setVal('q_lama_bekerja', 1);
+  setVal('q_penghasilan', 3);
+  setVal('q_bukti_dokumen', 1);
 
-  setVal('d2_temuan', 'Pemohon memiliki rekening tabungan aktif dengan riwayat mutasi yang stabil selama 6 bulan terakhir. Saldo mengendap berada pada kisaran yang wajar dibandingkan dengan estimasi biaya perjalanan.');
-  setVal('d2_kekuatan', 'Saldo mengendap konsisten tanpa lonjakan dana mendadak yang mencurigakan.\nSumber dana dapat ditelusuri berasal dari gaji bulanan yang rutin masuk.');
-  setVal('d2_kelemahan', 'Rekening koran 3 bulan terakhir belum dilampirkan.\nBeberapa dokumen pendukung yang disarankan:\n1. Rekening koran 3-6 bulan terakhir.\n2. Surat referensi bank (apabila tersedia).');
-  setVal('d2_dimata', 'Kestabilan finansial pemohon akan dinilai positif selama mutasi rekening dapat menunjukkan sumber dana yang jelas dan konsisten dengan profil pekerjaan.');
-  setVal('d2_catatan', 'Kelengkapan dokumen finansial akan memperkuat keyakinan petugas visa atas kemampuan pemohon membiayai perjalanan.');
+  document.getElementById('ql_kemampuan_cuti').value = 'WEAK';
+  setVal('ql_konsistensi_dokumen', 'Dokumen pendukung sangat lemah dan tidak konsisten. Mutasi rekening tidak mencerminkan penerimaan gaji yang teratur. Ketiadaan dokumen formal seperti slip gaji resmi, BPJS, dan bukti potong pajak, serta kontrak kerja yang sederhana, menunjukkan kurangnya formalitas dan verifikasi yang kuat.');
+  setVal('ql_catatan_lokasi', 'Perusahaan adalah usaha perorangan dengan skala sangat kecil (3-5 karyawan) tanpa jejak digital yang memadai, menunjukkan operasional yang informal dan terbatas.');
+  document.getElementById('ql_tier_katalog').value = 'Tier 3';
 
-  setVal('d3_temuan', 'Pemohon belum memiliki riwayat perjalanan internasional sebelumnya. Ini merupakan pengajuan visa Schengen pertama bagi pemohon.');
-  setVal('d3_kekuatan', 'Tidak ada catatan negatif atau riwayat penolakan visa sebelumnya.');
-  setVal('d3_kelemahan', 'Minimnya riwayat perjalanan internasional dapat menjadi pertimbangan tambahan bagi petugas visa.\nDisarankan melampirkan itinerary perjalanan yang jelas dan terperinci.');
-  setVal('d3_dimata', 'Sebagai pemohon first-timer, petugas visa akan memberi perhatian lebih pada konsistensi rencana perjalanan dan ikatan pemohon dengan negara asal.');
-  setVal('d3_catatan', 'Itinerary yang rapi dan realistis akan membantu meyakinkan petugas visa atas tujuan perjalanan yang jelas.');
+  setVal('k_narasi_penilaian', 'Berdasarkan analisis profil pekerjaan dan penghasilan subjek, ditemukan bahwa subjek saat ini berstatus karyawan kontrak (masa percobaan/probation) dengan masa kerja yang sangat singkat, yaitu 3 bulan, di Toko Elektronik & Servis Makmur Jaya, sebuah usaha perorangan dengan jumlah karyawan antara 3-5 orang tanpa jejak digital perusahaan yang kuat. Subjek menempati posisi Staf Administrasi & Kasir Toko dengan penghasilan bulanan sebesar IDR 3.200.000, yang terdiri dari gaji pokok IDR 2.800.000 dan uang makan IDR 400.000 yang tidak tetap. Metode penerimaan gaji bersifat informal, yaitu tunai atau ditransfer dari rekening pribadi pemilik toko, bukan rekening perusahaan.\n\nSecara verifikasi, subjek tidak terdaftar BPJS Ketenagakerjaan, tidak rutin menerima slip gaji resmi, dan tidak memiliki bukti potong pajak tahunan. Kontrak kerja yang dimiliki adalah surat kesepakatan sederhana tanpa kop surat resmi perusahaan dan tanpa meterai.\n\nTerkait informasi cuti, subjek mengajukan cuti di luar tanggungan (unpaid leave) secara lisan, tanpa surat izin resmi dari toko, dan hanya mendapat persetujuan melalui chat WhatsApp. Tidak ada jaminan tertulis mengenai posisi subjek setelah kembali bekerja.\n\nDokumen pendukung yang dilampirkan juga sangat lemah: rekening tabungan pribadi 2 bulan terakhir menunjukkan mutasi masuk yang tidak konsisten, hanya terdapat foto kwitansi gajian tulisan tangan, serta tangkapan layar chat WhatsApp izin libur. Hal ini menunjukkan tingkat formalitas dan konsistensi data yang sangat rendah.');
+  document.getElementById('k_kesimpulan').value = 'RED FLAG';
+  setVal('k_rekomendasi', 'Meminta surat keterangan kerja resmi bermeterai dengan kop surat toko.\nMelampirkan mutasi rekening koran 3-6 bulan terakhir yang lebih konsisten.\nMelampirkan bukti kepemilikan aset keluarga atau bukti ikatan keluarga yang lebih kuat di Indonesia.');
 
-  setVal('d4_temuan', 'Pemohon telah menikah dan memiliki dua orang anak yang masih bersekolah di Indonesia. Pemohon juga merupakan pemilik properti atas nama pribadi di kota domisili.');
-  setVal('d4_kekuatan', 'Kepemilikan properti menjadi bukti kuat ikatan ekonomi dengan Indonesia.\nTanggungan keluarga (pasangan dan anak yang bersekolah) memperkuat alasan kepulangan setelah perjalanan selesai.');
-  setVal('d4_kelemahan', 'Dokumen kepemilikan properti (sertifikat/PBB) belum dilampirkan.\nDisarankan melampirkan:\n1. Kartu Keluarga.\n2. Sertifikat/bukti kepemilikan aset.');
-  setVal('d4_dimata', 'Profil keluarga dan aset yang dimiliki pemohon akan dipandang sebagai indikator kuat rendahnya risiko overstay.');
-  setVal('d4_catatan', 'Ikatan keluarga dan aset yang terdokumentasi dengan baik menjadi salah satu faktor penguat utama dalam aplikasi visa ini.');
-
-  setVal('k_skor', '78/100');
-  document.getElementById('k_risiko').value = 'Sedang';
-  setVal('k_ringkasan', 'Secara keseluruhan, profil pemohon menunjukkan ikatan ekonomi dan personal yang cukup kuat dengan Indonesia, didukung oleh stabilitas pekerjaan dan kepemilikan aset. Kelemahan utama terletak pada kelengkapan dokumen pendukung yang perlu segera dilengkapi sebelum pengajuan.');
-  setVal('k_rekomendasi', 'Lengkapi seluruh dokumen pendukung pekerjaan dan finansial sesuai catatan di masing-masing dimensi.\nSusun itinerary perjalanan yang realistis dan terperinci.\nLampirkan bukti kepemilikan aset dan Kartu Keluarga untuk memperkuat ikatan personal.');
-  setVal('k_catatan', 'Laporan ini merupakan instrumen penilaian kesiapan profil dan bukan jaminan hasil keputusan visa oleh pihak kedutaan.');
-
+  calculateTotalSkor();
   render();
 }
 
 function resetForm() {
-  document.querySelectorAll('input[type=text],input[type=date],textarea').forEach(el => el.value = '');
-  document.getElementById('k_risiko').value = 'Sedang';
+  document.querySelectorAll('input[type=text],input[type=number],input[type=date],textarea').forEach(el => el.value = '');
+  document.getElementById('ql_kemampuan_cuti').value = 'WEAK';
+  document.getElementById('ql_tier_katalog').value = 'Tier 3';
+  document.getElementById('k_kesimpulan').value = 'RED FLAG';
   photoDataUrl = null;
+  calculateTotalSkor();
   render();
 }
 
