@@ -48,10 +48,10 @@
       }
       await WeposeReport.waitForImages(document);
 
-      // dua frame biar layout benar-benar settle sebelum diukur
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      // beri waktu sedikit biar layout benar-benar settle sebelum diukur
+      await new Promise(r => setTimeout(r, 100));
       WeposeReport.autofitAll(document);
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await new Promise(r => setTimeout(r, 100));
 
       window.__PDF_READY__ = true;
     } catch (err) {
