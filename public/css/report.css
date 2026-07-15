@@ -232,11 +232,14 @@ html,body{margin:0;padding:0;background:#EEF2F3;font-family:'Poppins',sans-serif
 
 /* ---------- PRINT ---------- */
 @media print{
-  body{background:#fff;}
+  html, body{background:#fff !important;}
   .app{display:block;}
   .form-panel,.preview-scale-note{display:none !important;}
   .preview-panel{padding:0;overflow:visible;max-height:none;}
   .page{box-shadow:none;margin:0;page-break-after:always;}
   .page:last-child{page-break-after:auto;}
+  .box-temuan, .dim-closing, .section-title-row {
+    box-shadow: none !important;
+  }
   @page{size:A4;margin:0;}
 }
