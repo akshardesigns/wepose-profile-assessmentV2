@@ -203,10 +203,10 @@ function loadStateToForm(state) {
   setVal('q_bukti_dokumen_catatan', sq.bukti_dokumen_catatan || '');
 
   const pk = state.penilaian_kualitatif || {};
-  document.getElementById('ql_kemampuan_cuti').value = pk.kemampuan_cuti || 'WEAK';
+  document.getElementById('ql_kemampuan_cuti').value = pk.kemampuan_cuti || '-';
   setVal('ql_konsistensi_dokumen', pk.konsistensi_dokumen);
   setVal('ql_catatan_lokasi', pk.catatan_lokasi);
-  document.getElementById('ql_tier_katalog').value = pk.tier_katalog || 'Tier 3';
+  document.getElementById('ql_tier_katalog').value = pk.tier_katalog || '-';
 
   const k = state.kesimpulan || {};
   document.getElementById('k_kesimpulan').value = k.value || k.risiko || 'WEAK';
@@ -459,8 +459,8 @@ function resetForm() {
   ['q_pekerjaan_catatan', 'q_skala_usaha_catatan', 'q_jabatan_catatan', 'q_lama_bekerja_catatan', 'q_penghasilan_catatan', 'q_bukti_dokumen_catatan'].forEach(id => {
     setVal(id, '');
   });
-  document.getElementById('ql_kemampuan_cuti').value = 'WEAK';
-  document.getElementById('ql_tier_katalog').value = 'Tier 3';
+  document.getElementById('ql_kemampuan_cuti').value = '-';
+  document.getElementById('ql_tier_katalog').value = '-';
   document.getElementById('k_kesimpulan').value = 'RED FLAG';
   photoDataUrl = null;
   calculateTotalSkor();

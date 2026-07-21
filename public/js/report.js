@@ -71,7 +71,7 @@
         pekerjaan: 0, skala_usaha: 0, jabatan: 0, lama_bekerja: 0, penghasilan: 0, bukti_dokumen: 0
       },
       penilaian_kualitatif: {
-        kemampuan_cuti: 'WEAK', konsistensi_dokumen: '', catatan_lokasi: '', tier_katalog: 'Tier 3'
+        kemampuan_cuti: '-', konsistensi_dokumen: '', catatan_lokasi: '', tier_katalog: '-'
       },
       kesimpulan: {
         value: 'RED FLAG', risiko: 'RED FLAG', total_skor: 0, narasi_penilaian: '', rekomendasi: ''
@@ -259,8 +259,8 @@
   function penilaianKualitatifPageHTML(state, pageNum, totalPages) {
     const paspor = (state.cover && state.cover.paspor) || '(isi nomor disini)';
     const pk = state.penilaian_kualitatif || {};
-    const kemampuanCuti = pk.kemampuan_cuti || 'WEAK';
-    const tierKatalog = pk.tier_katalog || 'Tier 3';
+    const kemampuanCuti = pk.kemampuan_cuti || '-';
+    const tierKatalog = pk.tier_katalog || '-';
 
     return `
   <div class="page dim" id="pagePenilaianKualitatif">
