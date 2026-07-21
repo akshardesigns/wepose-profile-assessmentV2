@@ -232,13 +232,15 @@
         <div class="eyebrow-sm">PROFILE ASSESSMENT REPORT</div>
         <div class="passport-chip">${iconDoc()}<div>NOMOR PASSPOR<br><b>${esc(paspor)}</b></div></div>
       </div>
-      <div class="section-title-row" style="margin-bottom: 3.5mm;">
+
+      <!-- Section Title I -->
+      <div class="section-title-row" style="margin-bottom: 3mm; padding: 2.5mm 5mm;">
         <div class="roman-pill">I</div>
-        <h2>Skor Kuantitatif, Penilaian Kualitatif &amp; Kategori</h2>
+        <h2>Skor Kuantitatif</h2>
       </div>
 
-      <div class="box box-temuan" style="margin-bottom: 3.5mm; padding: 3.5mm 5.5mm;">
-        <h3 style="margin-bottom: 2.5mm;">Rincian Nilai &amp; Catatan 6 Pilar Assessment</h3>
+      <div class="box box-temuan" style="margin-bottom: 3mm; padding: 3mm 5mm;">
+        <h3 style="margin-bottom: 2mm;">Rincian Nilai &amp; Catatan 6 Pilar Assessment</h3>
         <div class="status-bars-container">
           ${renderPillarRow('Kekuatan Pekerjaan', pekerjaan, sq.pekerjaan_catatan)}
           ${renderPillarRow('Skala Usaha', skala_usaha, sq.skala_usaha_catatan, true)}
@@ -249,35 +251,44 @@
         </div>
       </div>
 
-      <div class="stat-row" style="margin-bottom: 3.5mm; gap: 3.5mm;">
-        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 3mm 5.5mm;">
+      <div class="stat-row" style="margin-bottom: 3mm;">
+        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 2.5mm 5mm;">
           <div>
             <div class="lbl" style="margin-bottom:0.5mm;">Total Skor Kuantitatif</div>
-            <div class="val" style="font-size:18pt; line-height:1.1;">${totalDisplay} <span style="font-size:10pt; color:#7c8c92; font-weight:normal;">/ 27</span></div>
+            <div class="val" style="font-size:16pt; line-height:1.1;">${totalDisplay} <span style="font-size:9.5pt; color:#7c8c92; font-weight:normal;">/ 27</span></div>
           </div>
           <div>
-            <div class="lbl" style="text-align:right; margin-bottom:1.5mm;">Tingkat Kesiapan</div>
-            <span class="status-badge ${totalClassName}" style="padding:1.5mm 4.5mm; font-size:9.5pt; font-weight:800; border-radius:20mm; display:inline-block;">${totalStatusLabel}</span>
+            <div class="lbl" style="text-align:right; margin-bottom:1mm;">Tingkat Kesiapan</div>
+            <span class="status-badge ${totalClassName}" style="padding:1.2mm 4mm; font-size:9pt; font-weight:800; border-radius:20mm; display:inline-block;">${totalStatusLabel}</span>
           </div>
         </div>
-        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 3mm 5.5mm;">
+      </div>
+
+      <!-- Section Title II -->
+      <div class="section-title-row" style="margin-top: 3mm; margin-bottom: 3mm; padding: 2.5mm 5mm;">
+        <div class="roman-pill">II</div>
+        <h2>Penilaian Kualitatif &amp; Kategori</h2>
+      </div>
+
+      <div class="stat-row" style="margin-bottom: 3mm;">
+        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 2.5mm 5mm;">
           <div>
-            <div class="lbl" style="margin-bottom:1mm;">Kemampuan Cuti</div>
+            <div class="lbl" style="margin-bottom:0.5mm;">Kemampuan Cuti</div>
             <span class="badge ${getKualitatifBadgeClass(kemampuanCuti)}">${esc(kemampuanCuti)}</span>
           </div>
           <div style="text-align:right;">
-            <div class="lbl" style="margin-bottom:1mm;">Tier Katalog</div>
+            <div class="lbl" style="margin-bottom:0.5mm;">Tier Katalog</div>
             <span class="badge badge-sedang" style="background:#eef1f2; color:var(--navy); font-weight:800;">${esc(tierKatalog)}</span>
           </div>
         </div>
       </div>
 
-      <div class="box box-temuan" style="margin-bottom: 3mm; padding: 3.5mm 5.5mm;">
+      <div class="box box-temuan" style="margin-bottom: 2.5mm; padding: 3mm 5mm;">
         <h3 style="margin-bottom: 1.5mm;">KONSISTENSI DOKUMEN</h3>
         ${paragraph(pk.konsistensi_dokumen)}
       </div>
 
-      <div class="box box-dimata" style="margin-bottom: 3mm; padding: 3.5mm 5.5mm;">
+      <div class="box box-dimata" style="margin-bottom: 2.5mm; padding: 3mm 5mm;">
         <h3 style="margin-bottom: 1.5mm;">CATATAN LOKASI</h3>
         ${paragraph(pk.catatan_lokasi)}
       </div>
@@ -300,7 +311,7 @@
         <div class="passport-chip">${iconDoc()}<div>NOMOR PASSPOR<br><b>${esc(paspor)}</b></div></div>
       </div>
       <div class="section-title-row">
-        <div class="roman-pill">II</div>
+        <div class="roman-pill">III</div>
         <h2>Analisis, Kesimpulan &amp; Rekomendasi</h2>
       </div>
 
