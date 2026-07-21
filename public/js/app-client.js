@@ -53,10 +53,23 @@ const SCORE_OPTIONS = [
   { label: "RF", category: "RED FLAG", value: "RF" }
 ];
 
-function findScoreOptionIndex(val) {
+const SKALA_SCORE_OPTIONS = [
+  { label: "+2", category: "STRONG", value: 2 },
+  { label: "+1", category: "MEDIUM", value: 1 },
+  { label: "0", category: "NEUTRAL", value: 0 },
+  { label: "-1", category: "WEAK", value: -1 },
+  { label: "RF", category: "RED FLAG", value: "RF" }
+];
+
+function getScoreOptions(id) {
+  if (id === 'q_skala_usaha') return SKALA_SCORE_OPTIONS;
+  return SCORE_OPTIONS;
+}
+
+function findScoreOptionIndex(val, options = SCORE_OPTIONS) {
   if (val === 'RF' || val === 'rf') return 4;
   const numVal = typeof val === 'number' ? val : parseInt(val, 10);
-  const idx = SCORE_OPTIONS.findIndex(opt => opt.value === numVal);
+  const idx = options.findIndex(opt => opt.value === numVal);
   return idx !== -1 ? idx : 2; // Default to '0' (idx 2)
 }
 
@@ -75,8 +88,9 @@ function setStepperValue(id, val) {
   const minusBtn = document.getElementById(id + '_minus');
   const plusBtn = document.getElementById(id + '_plus');
 
-  const idx = findScoreOptionIndex(val);
-  const selectedOpt = SCORE_OPTIONS[idx];
+  const options = getScoreOptions(id);
+  const idx = findScoreOptionIndex(val, options);
+  const selectedOpt = options[idx];
 
   if (hiddenInput) {
     hiddenInput.value = selectedOpt.value;
@@ -91,19 +105,20 @@ function setStepperValue(id, val) {
       displayEl.classList.remove('is-rf');
     }
   }
-  // At index 0 (+5): cannot increase (+ btn disabled)
+  // At index 0: cannot increase (+ btn disabled)
   // At index 4 (RF): cannot decrease (- btn disabled)
   if (plusBtn) plusBtn.disabled = (idx === 0);
-  if (minusBtn) minusBtn.disabled = (idx === SCORE_OPTIONS.length - 1);
+  if (minusBtn) minusBtn.disabled = (idx === options.length - 1);
 }
 
 function stepScore(id, dir) {
+  const options = getScoreOptions(id);
   const currentRaw = document.getElementById(id) ? document.getElementById(id).value : 0;
-  const currentIdx = findScoreOptionIndex(currentRaw);
+  const currentIdx = findScoreOptionIndex(currentRaw, options);
   // dir +1 means higher score (moving left toward idx 0)
   // dir -1 means lower score (moving right toward idx 4)
-  const newIdx = Math.max(0, Math.min(SCORE_OPTIONS.length - 1, currentIdx - dir));
-  setStepperValue(id, SCORE_OPTIONS[newIdx].value);
+  const newIdx = Math.max(0, Math.min(options.length - 1, currentIdx - dir));
+  setStepperValue(id, options[newIdx].value);
   calculateTotalSkor();
   render();
 }
@@ -423,7 +438,7 @@ function fillSample() {
   setStepperValue('q_pekerjaan', 3);
   setVal('q_pekerjaan_catatan', 'Berstatus karyawan kontrak (probation) di Toko Elektronik.');
 
-  setStepperValue('q_skala_usaha', -3);
+  setStepperValue('q_skala_usaha', -1);
   setVal('q_skala_usaha_catatan', 'Usaha perorangan skala kecil (3-5 karyawan) tanpa jejak digital resmi.');
 
   setStepperValue('q_jabatan', 0);

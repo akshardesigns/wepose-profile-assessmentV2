@@ -140,7 +140,7 @@
   </div>`;
   }
 
-  function getStatusLabelAndClass(val) {
+  function getStatusLabelAndClass(val, isSkala = false) {
     if (val === 'RF' || val === 'rf') {
       return { label: 'RED FLAG', displayVal: 'RF', className: 'status-kritis', pct: 10 };
     }
@@ -148,14 +148,21 @@
     if (isNaN(num)) {
       return { label: 'NEUTRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
     }
-    if (num >= 5) return { label: 'STRONG', displayVal: '+5', className: 'status-kuat', pct: 100 };
-    if (num >= 3) return { label: 'MEDIUM', displayVal: '+3', className: 'status-cukup', pct: 75 };
-    if (num >= 0) return { label: 'NEUTRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
-    return { label: 'WEAK', displayVal: '-3', className: 'status-kritis', pct: 25 };
+    if (isSkala) {
+      if (num >= 2) return { label: 'STRONG', displayVal: '+2', className: 'status-kuat', pct: 100 };
+      if (num >= 1) return { label: 'MEDIUM', displayVal: '+1', className: 'status-cukup', pct: 75 };
+      if (num >= 0) return { label: 'NEUTRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
+      return { label: 'WEAK', displayVal: '-1', className: 'status-kritis', pct: 25 };
+    } else {
+      if (num >= 5) return { label: 'STRONG', displayVal: '+5', className: 'status-kuat', pct: 100 };
+      if (num >= 3) return { label: 'MEDIUM', displayVal: '+3', className: 'status-cukup', pct: 75 };
+      if (num >= 0) return { label: 'NEUTRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
+      return { label: 'WEAK', displayVal: '-3', className: 'status-kritis', pct: 25 };
+    }
   }
 
-  function renderPillarRow(label, scoreVal, catatanVal) {
-    const { label: statusLabel, displayVal, className, pct } = getStatusLabelAndClass(scoreVal);
+  function renderPillarRow(label, scoreVal, catatanVal, isSkala = false) {
+    const { label: statusLabel, displayVal, className, pct } = getStatusLabelAndClass(scoreVal, isSkala);
     const hasNote = catatanVal && catatanVal.trim() !== '';
 
     return `
@@ -203,7 +210,7 @@
     if (isRF || numTotal <= 0) {
       totalStatusLabel = 'KRITIS';
       totalClassName = 'status-kritis';
-    } else if (numTotal >= 22) {
+    } else if (numTotal >= 20) {
       totalStatusLabel = 'KUAT';
       totalClassName = 'status-kuat';
     } else if (numTotal >= 10) {
@@ -230,7 +237,7 @@
         <h3 style="margin-bottom: 3.5mm;">Rincian Nilai &amp; Catatan 6 Pilar Assessment</h3>
         <div class="status-bars-container">
           ${renderPillarRow('Kekuatan Pekerjaan', pekerjaan, sq.pekerjaan_catatan)}
-          ${renderPillarRow('Skala Usaha', skala_usaha, sq.skala_usaha_catatan)}
+          ${renderPillarRow('Skala Usaha', skala_usaha, sq.skala_usaha_catatan, true)}
           ${renderPillarRow('Tingkat Jabatan', jabatan, sq.jabatan_catatan)}
           ${renderPillarRow('Lama Bekerja', lama_bekerja, sq.lama_bekerja_catatan)}
           ${renderPillarRow('Penghasilan / Finansial', penghasilan, sq.penghasilan_catatan)}
@@ -242,7 +249,7 @@
         <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 4.5mm 6.5mm;">
           <div>
             <div class="lbl" style="margin-bottom:1mm;">Total Skor Kuantitatif</div>
-            <div class="val" style="font-size:22pt; line-height:1.1;">${totalDisplay} <span style="font-size:11pt; color:#7c8c92; font-weight:normal;">/ 30</span></div>
+            <div class="val" style="font-size:22pt; line-height:1.1;">${totalDisplay} <span style="font-size:11pt; color:#7c8c92; font-weight:normal;">/ 27</span></div>
           </div>
           <div>
             <div class="lbl" style="text-align:right; margin-bottom:2mm;">Tingkat Kesiapan</div>
