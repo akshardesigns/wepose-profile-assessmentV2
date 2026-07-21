@@ -141,28 +141,36 @@
   }
 
   function getStatusLabelAndClass(val) {
-    if (val >= 22) return { label: 'KUAT', className: 'status-kuat' };
-    if (val >= 10) return { label: 'CUKUP', className: 'status-cukup' };
-    if (val >= 1) return { label: 'PERLU PERHATIAN', className: 'status-perhatian' };
-    return { label: 'KRITIS', className: 'status-kritis' };
+    if (val === 'RF' || val === 'rf') {
+      return { label: 'RED FLAG', displayVal: 'RF', className: 'status-kritis', pct: 10 };
+    }
+    const num = typeof val === 'number' ? val : parseInt(val, 10);
+    if (isNaN(num)) {
+      return { label: 'NETRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
+    }
+    if (num >= 5) return { label: 'KUAT', displayVal: '+5', className: 'status-kuat', pct: 100 };
+    if (num >= 3) return { label: 'CUKUP', displayVal: '+3', className: 'status-cukup', pct: 75 };
+    if (num >= 0) return { label: 'NETRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
+    return { label: 'LEMAH', displayVal: '-3', className: 'status-kritis', pct: 25 };
   }
 
-  function renderStatusBar(label, value) {
-    const maxVal = 22;
-    const clampedVal = Math.min(maxVal, Math.max(0, value));
-    const pct = Math.round((clampedVal / maxVal) * 100);
-    const { label: statusLabel, className } = getStatusLabelAndClass(value);
-    
+  function renderPillarRow(label, scoreVal, catatanVal) {
+    const { label: statusLabel, displayVal, className, pct } = getStatusLabelAndClass(scoreVal);
+    const hasNote = catatanVal && catatanVal.trim() !== '';
+
     return `
-      <div class="status-bar-row">
-        <div class="status-bar-lbl">${esc(label)}</div>
-        <div class="status-bar-track">
-          <div class="status-bar-fill ${className}" style="width: ${pct}%"></div>
+      <div class="pillar-report-item" style="margin-bottom: 2.5mm; padding-bottom: 2mm; border-bottom: 1px dashed #e7ecec;">
+        <div class="status-bar-row">
+          <div class="status-bar-lbl" style="width: 46mm;">${esc(label)}</div>
+          <div class="status-bar-track">
+            <div class="status-bar-fill ${className}" style="width: ${pct}%"></div>
+          </div>
+          <div class="status-bar-val" style="width: 10mm;">${displayVal}</div>
+          <div class="status-bar-badge-wrap">
+            <span class="status-badge ${className}">${statusLabel}</span>
+          </div>
         </div>
-        <div class="status-bar-val">${clampedVal}</div>
-        <div class="status-bar-badge-wrap">
-          <span class="status-badge ${className}">${statusLabel}</span>
-        </div>
+        ${hasNote ? `<div style="font-size: 7.8pt; color: #527582; margin-top: 1.2mm; padding-left: 1mm; font-style: italic; line-height: 1.35;"><b>Catatan:</b> ${esc(catatanVal)}</div>` : ''}
       </div>
     `;
   }
@@ -185,8 +193,29 @@
     const bukti_dokumen = sq.bukti_dokumen !== undefined ? sq.bukti_dokumen : 0;
     
     const k = state.kesimpulan || {};
-    const total_skor = k.total_skor !== undefined ? k.total_skor : (pekerjaan + skala_usaha + jabatan + lama_bekerja + penghasilan + bukti_dokumen);
-    const { label: totalStatusLabel, className: totalClassName } = getStatusLabelAndClass(total_skor);
+    let totalDisplay = k.total_skor !== undefined ? String(k.total_skor) : '0';
+    let isRF = totalDisplay.includes('RF') || pekerjaan === 'RF' || skala_usaha === 'RF' || jabatan === 'RF' || lama_bekerja === 'RF' || penghasilan === 'RF' || bukti_dokumen === 'RF';
+
+    let totalStatusLabel = 'CUKUP';
+    let totalClassName = 'status-cukup';
+    const numTotal = parseInt(totalDisplay, 10) || 0;
+
+    if (isRF) {
+      totalStatusLabel = 'RED FLAG';
+      totalClassName = 'status-kritis';
+    } else if (numTotal >= 20) {
+      totalStatusLabel = 'KUAT';
+      totalClassName = 'status-kuat';
+    } else if (numTotal >= 10) {
+      totalStatusLabel = 'CUKUP';
+      totalClassName = 'status-cukup';
+    } else if (numTotal >= 0) {
+      totalStatusLabel = 'PERLU PERHATIAN';
+      totalClassName = 'status-perhatian';
+    } else {
+      totalStatusLabel = 'KRITIS';
+      totalClassName = 'status-kritis';
+    }
 
     return `
   <div class="page dim" id="pageSkorKuantitatif">
@@ -200,27 +229,27 @@
         <h2>1. Skor Kuantitatif</h2>
       </div>
 
-      <div class="box box-temuan" style="margin-bottom: 6mm; padding: 6mm 7mm;">
-        <h3 style="margin-bottom: 4mm;">Rincian Nilai Kuantitatif</h3>
+      <div class="box box-temuan" style="margin-bottom: 5mm; padding: 5mm 6.5mm;">
+        <h3 style="margin-bottom: 3.5mm;">Rincian Nilai &amp; Catatan 6 Pilar Assessment</h3>
         <div class="status-bars-container">
-          ${renderStatusBar('Kekuatan Pekerjaan', pekerjaan)}
-          ${renderStatusBar('Skala Usaha', skala_usaha)}
-          ${renderStatusBar('Tingkat Jabatan', jabatan)}
-          ${renderStatusBar('Lama Bekerja', lama_bekerja)}
-          ${renderStatusBar('Kekuatan Penghasilan', penghasilan)}
-          ${renderStatusBar('Bukti Dokumen Pendukung', bukti_dokumen)}
+          ${renderPillarRow('Kekuatan Pekerjaan', pekerjaan, sq.pekerjaan_catatan)}
+          ${renderPillarRow('Skala Usaha', skala_usaha, sq.skala_usaha_catatan)}
+          ${renderPillarRow('Tingkat Jabatan', jabatan, sq.jabatan_catatan)}
+          ${renderPillarRow('Lama Bekerja', lama_bekerja, sq.lama_bekerja_catatan)}
+          ${renderPillarRow('Penghasilan / Finansial', penghasilan, sq.penghasilan_catatan)}
+          ${renderPillarRow('Bukti Dokumen Pendukung', bukti_dokumen, sq.bukti_dokumen_catatan)}
         </div>
       </div>
 
       <div class="stat-row">
-        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 6mm 8mm;">
+        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 4.5mm 6.5mm;">
           <div>
             <div class="lbl" style="margin-bottom:1mm;">Total Skor Kuantitatif</div>
-            <div class="val" style="font-size:24pt; line-height:1.1;">${total_skor} <span style="font-size:12pt; color:#7c8c92; font-weight:normal;">/ 132</span></div>
+            <div class="val" style="font-size:22pt; line-height:1.1;">${totalDisplay} <span style="font-size:11pt; color:#7c8c92; font-weight:normal;">/ 30</span></div>
           </div>
           <div>
             <div class="lbl" style="text-align:right; margin-bottom:2mm;">Tingkat Kesiapan</div>
-            <span class="status-badge ${totalClassName}" style="padding:2mm 5mm; font-size:11pt; font-weight:800; border-radius:20mm; display:inline-block;">${totalStatusLabel}</span>
+            <span class="status-badge ${totalClassName}" style="padding:2mm 5mm; font-size:10.5pt; font-weight:800; border-radius:20mm; display:inline-block;">${totalStatusLabel}</span>
           </div>
         </div>
       </div>

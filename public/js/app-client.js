@@ -41,47 +41,108 @@ window.addEventListener('resize', () => { /* biarkan user set ulang manual via t
 
 const DIM_KEYS = ['temuan', 'kekuatan', 'kelemahan', 'dimata', 'catatan'];
 
-function val(id) { return document.getElementById(id).value; }
+function val(id) { return document.getElementById(id) ? document.getElementById(id).value : ''; }
 function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v !== undefined && v !== null ? v : ''; }
 
-function getClampedNum(id) {
+/* ---------------- Stepper Component Helper ---------------- */
+const SCORE_OPTIONS = [
+  { label: "+5", value: 5 },
+  { label: "+3", value: 3 },
+  { label: "0", value: 0 },
+  { label: "-3", value: -3 },
+  { label: "RF", value: "RF" }
+];
+
+function findScoreOptionIndex(val) {
+  if (val === 'RF' || val === 'rf') return 4;
+  const numVal = typeof val === 'number' ? val : parseInt(val, 10);
+  const idx = SCORE_OPTIONS.findIndex(opt => opt.value === numVal);
+  return idx !== -1 ? idx : 2; // Default to '0' (idx 2)
+}
+
+function getStepperValue(id) {
   const el = document.getElementById(id);
   if (!el) return 0;
-  let valStr = el.value.trim();
-  if (valStr === '') return 0;
-  let v = parseInt(valStr);
-  if (isNaN(v)) return 0;
-  if (v > 22) {
-    v = 22;
-    el.value = 22;
-  } else if (v < 0) {
-    v = 0;
-    el.value = 0;
+  const raw = (el.value || '').toString().trim();
+  if (raw === 'RF' || raw === 'rf') return 'RF';
+  const num = parseInt(raw, 10);
+  return isNaN(num) ? 0 : num;
+}
+
+function setStepperValue(id, val) {
+  const hiddenInput = document.getElementById(id);
+  const displayEl = document.getElementById(id + '_display');
+  const minusBtn = document.getElementById(id + '_minus');
+  const plusBtn = document.getElementById(id + '_plus');
+
+  const idx = findScoreOptionIndex(val);
+  const selectedOpt = SCORE_OPTIONS[idx];
+
+  if (hiddenInput) {
+    hiddenInput.value = selectedOpt.value;
   }
-  return v;
+  if (displayEl) {
+    displayEl.textContent = selectedOpt.label;
+    if (selectedOpt.value === 'RF') {
+      displayEl.classList.add('is-rf');
+    } else {
+      displayEl.classList.remove('is-rf');
+    }
+  }
+  // At index 0 (+5): cannot increase (+ btn disabled)
+  // At index 4 (RF): cannot decrease (- btn disabled)
+  if (plusBtn) plusBtn.disabled = (idx === 0);
+  if (minusBtn) minusBtn.disabled = (idx === SCORE_OPTIONS.length - 1);
+}
+
+function stepScore(id, dir) {
+  const currentRaw = document.getElementById(id) ? document.getElementById(id).value : 0;
+  const currentIdx = findScoreOptionIndex(currentRaw);
+  // dir +1 means higher score (moving left toward idx 0)
+  // dir -1 means lower score (moving right toward idx 4)
+  const newIdx = Math.max(0, Math.min(SCORE_OPTIONS.length - 1, currentIdx - dir));
+  setStepperValue(id, SCORE_OPTIONS[newIdx].value);
+  calculateTotalSkor();
+  render();
 }
 
 function calculateTotalSkor() {
-  const pekerjaan = getClampedNum('q_pekerjaan');
-  const skala_usaha = getClampedNum('q_skala_usaha');
-  const jabatan = getClampedNum('q_jabatan');
-  const lama_bekerja = getClampedNum('q_lama_bekerja');
-  const penghasilan = getClampedNum('q_penghasilan');
-  const bukti_dokumen = getClampedNum('q_bukti_dokumen');
-  
-  const total = pekerjaan + skala_usaha + jabatan + lama_bekerja + penghasilan + bukti_dokumen;
-  setVal('q_total_skor', total);
+  const pillars = ['q_pekerjaan', 'q_skala_usaha', 'q_jabatan', 'q_lama_bekerja', 'q_penghasilan', 'q_bukti_dokumen'];
+  let total = 0;
+  let hasRF = false;
+  for (const id of pillars) {
+    const val = getStepperValue(id);
+    if (val === 'RF') {
+      hasRF = true;
+    } else {
+      total += val;
+    }
+  }
+  const totalEl = document.getElementById('q_total_skor');
+  const displayStr = hasRF ? `${total} (RF)` : `${total}`;
+  if (totalEl) {
+    totalEl.value = displayStr;
+  }
+  return { total, hasRF, displayStr };
 }
 
 /* ---------------- state <-> form ---------------- */
 function buildStateFromForm() {
-  const pekerjaan = getClampedNum('q_pekerjaan');
-  const skala_usaha = getClampedNum('q_skala_usaha');
-  const jabatan = getClampedNum('q_jabatan');
-  const lama_bekerja = getClampedNum('q_lama_bekerja');
-  const penghasilan = getClampedNum('q_penghasilan');
-  const bukti_dokumen = getClampedNum('q_bukti_dokumen');
-  const total_skor = pekerjaan + skala_usaha + jabatan + lama_bekerja + penghasilan + bukti_dokumen;
+  const pekerjaan = getStepperValue('q_pekerjaan');
+  const skala_usaha = getStepperValue('q_skala_usaha');
+  const jabatan = getStepperValue('q_jabatan');
+  const lama_bekerja = getStepperValue('q_lama_bekerja');
+  const penghasilan = getStepperValue('q_penghasilan');
+  const bukti_dokumen = getStepperValue('q_bukti_dokumen');
+
+  const pekerjaan_catatan = val('q_pekerjaan_catatan');
+  const skala_usaha_catatan = val('q_skala_usaha_catatan');
+  const jabatan_catatan = val('q_jabatan_catatan');
+  const lama_bekerja_catatan = val('q_lama_bekerja_catatan');
+  const penghasilan_catatan = val('q_penghasilan_catatan');
+  const bukti_dokumen_catatan = val('q_bukti_dokumen_catatan');
+
+  const { total, hasRF, displayStr } = calculateTotalSkor();
 
   return {
     cover: {
@@ -90,7 +151,12 @@ function buildStateFromForm() {
       sponsor: val('c_sponsor'), tanggal: val('c_tanggal'), fotoDataUrl: photoDataUrl
     },
     skor_kuantitatif: {
-      pekerjaan, skala_usaha, jabatan, lama_bekerja, penghasilan, bukti_dokumen
+      pekerjaan, pekerjaan_catatan,
+      skala_usaha, skala_usaha_catatan,
+      jabatan, jabatan_catatan,
+      lama_bekerja, lama_bekerja_catatan,
+      penghasilan, penghasilan_catatan,
+      bukti_dokumen, bukti_dokumen_catatan
     },
     penilaian_kualitatif: {
       kemampuan_cuti: val('ql_kemampuan_cuti'),
@@ -101,7 +167,7 @@ function buildStateFromForm() {
     kesimpulan: {
       value: val('k_kesimpulan'),
       risiko: val('k_kesimpulan'), // for sheets.js compatibility
-      total_skor: total_skor,
+      total_skor: displayStr,
       narasi_penilaian: val('k_narasi_penilaian'),
       rekomendasi: val('k_rekomendasi')
     }
@@ -116,12 +182,23 @@ function loadStateToForm(state) {
   photoDataUrl = c.fotoDataUrl || null;
 
   const sq = state.skor_kuantitatif || {};
-  setVal('q_pekerjaan', sq.pekerjaan !== undefined ? sq.pekerjaan : 0);
-  setVal('q_skala_usaha', sq.skala_usaha !== undefined ? sq.skala_usaha : 0);
-  setVal('q_jabatan', sq.jabatan !== undefined ? sq.jabatan : 0);
-  setVal('q_lama_bekerja', sq.lama_bekerja !== undefined ? sq.lama_bekerja : 0);
-  setVal('q_penghasilan', sq.penghasilan !== undefined ? sq.penghasilan : 0);
-  setVal('q_bukti_dokumen', sq.bukti_dokumen !== undefined ? sq.bukti_dokumen : 0);
+  setStepperValue('q_pekerjaan', sq.pekerjaan !== undefined ? sq.pekerjaan : 0);
+  setVal('q_pekerjaan_catatan', sq.pekerjaan_catatan || '');
+
+  setStepperValue('q_skala_usaha', sq.skala_usaha !== undefined ? sq.skala_usaha : 0);
+  setVal('q_skala_usaha_catatan', sq.skala_usaha_catatan || '');
+
+  setStepperValue('q_jabatan', sq.jabatan !== undefined ? sq.jabatan : 0);
+  setVal('q_jabatan_catatan', sq.jabatan_catatan || '');
+
+  setStepperValue('q_lama_bekerja', sq.lama_bekerja !== undefined ? sq.lama_bekerja : 0);
+  setVal('q_lama_bekerja_catatan', sq.lama_bekerja_catatan || '');
+
+  setStepperValue('q_penghasilan', sq.penghasilan !== undefined ? sq.penghasilan : 0);
+  setVal('q_penghasilan_catatan', sq.penghasilan_catatan || '');
+
+  setStepperValue('q_bukti_dokumen', sq.bukti_dokumen !== undefined ? sq.bukti_dokumen : 0);
+  setVal('q_bukti_dokumen_catatan', sq.bukti_dokumen_catatan || '');
 
   const pk = state.penilaian_kualitatif || {};
   document.getElementById('ql_kemampuan_cuti').value = pk.kemampuan_cuti || 'WEAK';
@@ -341,12 +418,23 @@ function fillSample() {
   setVal('c_sponsor', 'Biaya Sendiri');
   setVal('c_tanggal', new Date().toISOString().slice(0, 10));
 
-  setVal('q_pekerjaan', 2);
-  setVal('q_skala_usaha', 1);
-  setVal('q_jabatan', 4);
-  setVal('q_lama_bekerja', 1);
-  setVal('q_penghasilan', 3);
-  setVal('q_bukti_dokumen', 1);
+  setStepperValue('q_pekerjaan', 3);
+  setVal('q_pekerjaan_catatan', 'Berstatus karyawan kontrak (probation) di Toko Elektronik.');
+
+  setStepperValue('q_skala_usaha', -3);
+  setVal('q_skala_usaha_catatan', 'Usaha perorangan skala kecil (3-5 karyawan) tanpa jejak digital resmi.');
+
+  setStepperValue('q_jabatan', 0);
+  setVal('q_jabatan_catatan', 'Posisi Staf Administrasi & Kasir Toko.');
+
+  setStepperValue('q_lama_bekerja', -3);
+  setVal('q_lama_bekerja_catatan', 'Masa kerja sangat singkat (3 bulan).');
+
+  setStepperValue('q_penghasilan', 3);
+  setVal('q_penghasilan_catatan', 'Penghasilan IDR 3.200.000/bulan (gaji pokok + makan).');
+
+  setStepperValue('q_bukti_dokumen', 'RF');
+  setVal('q_bukti_dokumen_catatan', 'Tidak ada slip gaji resmi, BPJS, atau SPT. Gaji tunai/transfer pribadi.');
 
   document.getElementById('ql_kemampuan_cuti').value = 'WEAK';
   setVal('ql_konsistensi_dokumen', 'Dokumen pendukung sangat lemah dan tidak konsisten. Mutasi rekening tidak mencerminkan penerimaan gaji yang teratur. Ketiadaan dokumen formal seperti slip gaji resmi, BPJS, dan bukti potong pajak, serta kontrak kerja yang sederhana, menunjukkan kurangnya formalitas dan verifikasi yang kuat.');
@@ -363,6 +451,12 @@ function fillSample() {
 
 function resetForm() {
   document.querySelectorAll('input[type=text],input[type=number],input[type=date],textarea').forEach(el => el.value = '');
+  ['q_pekerjaan', 'q_skala_usaha', 'q_jabatan', 'q_lama_bekerja', 'q_penghasilan', 'q_bukti_dokumen'].forEach(id => {
+    setStepperValue(id, 0);
+  });
+  ['q_pekerjaan_catatan', 'q_skala_usaha_catatan', 'q_jabatan_catatan', 'q_lama_bekerja_catatan', 'q_penghasilan_catatan', 'q_bukti_dokumen_catatan'].forEach(id => {
+    setVal(id, '');
+  });
   document.getElementById('ql_kemampuan_cuti').value = 'WEAK';
   document.getElementById('ql_tier_katalog').value = 'Tier 3';
   document.getElementById('k_kesimpulan').value = 'RED FLAG';

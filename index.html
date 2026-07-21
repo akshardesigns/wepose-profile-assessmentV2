@@ -132,21 +132,112 @@
       <details class="section">
         <summary><span><span class="num">2</span>Skor Kuantitatif</span><span class="chev">▶</span></summary>
         <div class="section-body">
-          <div class="field-row">
-            <div class="field"><label>Pekerjaan (0-22)</label><input type="number" id="q_pekerjaan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
-            <div class="field"><label>Skala Usaha (0-22)</label><input type="number" id="q_skala_usaha" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+
+          <!-- 1. Pekerjaan -->
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <label class="pillar-title">1. Pekerjaan</label>
+              <div class="stepper-control">
+                <button type="button" id="q_pekerjaan_minus" class="stepper-btn" onclick="stepScore('q_pekerjaan', -1)" aria-label="Kurangi skor">-</button>
+                <span class="stepper-value" id="q_pekerjaan_display">0</span>
+                <button type="button" id="q_pekerjaan_plus" class="stepper-btn" onclick="stepScore('q_pekerjaan', 1)" aria-label="Tambah skor">+</button>
+                <input type="hidden" id="q_pekerjaan" value="0">
+              </div>
+            </div>
+            <div class="field pillar-catatan">
+              <label for="q_pekerjaan_catatan">Catatan</label>
+              <textarea id="q_pekerjaan_catatan" oninput="render()" placeholder="Catatan mengenai pekerjaan..."></textarea>
+            </div>
           </div>
-          <div class="field-row">
-            <div class="field"><label>Jabatan (0-22)</label><input type="number" id="q_jabatan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
-            <div class="field"><label>Lama Bekerja (0-22)</label><input type="number" id="q_lama_bekerja" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+
+          <!-- 2. Skala Usaha -->
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <label class="pillar-title">2. Skala Usaha</label>
+              <div class="stepper-control">
+                <button type="button" id="q_skala_usaha_minus" class="stepper-btn" onclick="stepScore('q_skala_usaha', -1)" aria-label="Kurangi skor">-</button>
+                <span class="stepper-value" id="q_skala_usaha_display">0</span>
+                <button type="button" id="q_skala_usaha_plus" class="stepper-btn" onclick="stepScore('q_skala_usaha', 1)" aria-label="Tambah skor">+</button>
+                <input type="hidden" id="q_skala_usaha" value="0">
+              </div>
+            </div>
+            <div class="field pillar-catatan">
+              <label for="q_skala_usaha_catatan">Catatan</label>
+              <textarea id="q_skala_usaha_catatan" oninput="render()" placeholder="Catatan mengenai skala usaha..."></textarea>
+            </div>
           </div>
-          <div class="field-row">
-            <div class="field"><label>Penghasilan (0-22)</label><input type="number" id="q_penghasilan" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
-            <div class="field"><label>Bukti Dokumen (0-22)</label><input type="number" id="q_bukti_dokumen" oninput="calculateTotalSkor(); render();" min="0" max="22" value="0"></div>
+
+          <!-- 3. Jabatan -->
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <label class="pillar-title">3. Jabatan</label>
+              <div class="stepper-control">
+                <button type="button" id="q_jabatan_minus" class="stepper-btn" onclick="stepScore('q_jabatan', -1)" aria-label="Kurangi skor">-</button>
+                <span class="stepper-value" id="q_jabatan_display">0</span>
+                <button type="button" id="q_jabatan_plus" class="stepper-btn" onclick="stepScore('q_jabatan', 1)" aria-label="Tambah skor">+</button>
+                <input type="hidden" id="q_jabatan" value="0">
+              </div>
+            </div>
+            <div class="field pillar-catatan">
+              <label for="q_jabatan_catatan">Catatan</label>
+              <textarea id="q_jabatan_catatan" oninput="render()" placeholder="Catatan mengenai jabatan..."></textarea>
+            </div>
           </div>
-          <div class="field">
+
+          <!-- 4. Lama Bekerja -->
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <label class="pillar-title">4. Lama Bekerja</label>
+              <div class="stepper-control">
+                <button type="button" id="q_lama_bekerja_minus" class="stepper-btn" onclick="stepScore('q_lama_bekerja', -1)" aria-label="Kurangi skor">-</button>
+                <span class="stepper-value" id="q_lama_bekerja_display">0</span>
+                <button type="button" id="q_lama_bekerja_plus" class="stepper-btn" onclick="stepScore('q_lama_bekerja', 1)" aria-label="Tambah skor">+</button>
+                <input type="hidden" id="q_lama_bekerja" value="0">
+              </div>
+            </div>
+            <div class="field pillar-catatan">
+              <label for="q_lama_bekerja_catatan">Catatan</label>
+              <textarea id="q_lama_bekerja_catatan" oninput="render()" placeholder="Catatan mengenai lama bekerja..."></textarea>
+            </div>
+          </div>
+
+          <!-- 5. Penghasilan (Finansial) -->
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <label class="pillar-title">5. Penghasilan / Finansial</label>
+              <div class="stepper-control">
+                <button type="button" id="q_penghasilan_minus" class="stepper-btn" onclick="stepScore('q_penghasilan', -1)" aria-label="Kurangi skor">-</button>
+                <span class="stepper-value" id="q_penghasilan_display">0</span>
+                <button type="button" id="q_penghasilan_plus" class="stepper-btn" onclick="stepScore('q_penghasilan', 1)" aria-label="Tambah skor">+</button>
+                <input type="hidden" id="q_penghasilan" value="0">
+              </div>
+            </div>
+            <div class="field pillar-catatan">
+              <label for="q_penghasilan_catatan">Catatan</label>
+              <textarea id="q_penghasilan_catatan" oninput="render()" placeholder="Catatan mengenai penghasilan / finansial..."></textarea>
+            </div>
+          </div>
+
+          <!-- 6. Bukti Dokumen -->
+          <div class="pillar-card">
+            <div class="pillar-header">
+              <label class="pillar-title">6. Bukti Dokumen</label>
+              <div class="stepper-control">
+                <button type="button" id="q_bukti_dokumen_minus" class="stepper-btn" onclick="stepScore('q_bukti_dokumen', -1)" aria-label="Kurangi skor">-</button>
+                <span class="stepper-value" id="q_bukti_dokumen_display">0</span>
+                <button type="button" id="q_bukti_dokumen_plus" class="stepper-btn" onclick="stepScore('q_bukti_dokumen', 1)" aria-label="Tambah skor">+</button>
+                <input type="hidden" id="q_bukti_dokumen" value="0">
+              </div>
+            </div>
+            <div class="field pillar-catatan">
+              <label for="q_bukti_dokumen_catatan">Catatan</label>
+              <textarea id="q_bukti_dokumen_catatan" oninput="render()" placeholder="Catatan mengenai bukti dokumen pendukung..."></textarea>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top: 10px;">
             <label>Total Skor (Otomatis)</label>
-            <input type="number" id="q_total_skor" readonly style="background-color: #f1f4f5; font-weight: bold;">
+            <input type="text" id="q_total_skor" readonly style="background-color: #f1f4f5; font-weight: bold;">
           </div>
         </div>
       </details>
