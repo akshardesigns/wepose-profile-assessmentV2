@@ -283,16 +283,6 @@
         </div>
       </div>
 
-      <div class="box box-temuan" style="margin-bottom: 2.5mm; padding: 3mm 5mm;">
-        <h3 style="margin-bottom: 1.5mm;">KONSISTENSI DOKUMEN</h3>
-        ${paragraph(pk.konsistensi_dokumen)}
-      </div>
-
-      <div class="box box-dimata" style="margin-bottom: 2.5mm; padding: 3mm 5mm;">
-        <h3 style="margin-bottom: 1.5mm;">CATATAN LOKASI</h3>
-        ${paragraph(pk.catatan_lokasi)}
-      </div>
-
     </div>
     <div class="page-footer"><span>WEPOSE</span><span>Pages ${pageNum} of ${totalPages}</span></div>
   </div>`;

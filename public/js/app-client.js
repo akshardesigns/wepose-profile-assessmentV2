@@ -177,8 +177,6 @@ function buildStateFromForm() {
     },
     penilaian_kualitatif: {
       kemampuan_cuti: val('ql_kemampuan_cuti'),
-      konsistensi_dokumen: val('ql_konsistensi_dokumen'),
-      catatan_lokasi: val('ql_catatan_lokasi'),
       tier_katalog: val('ql_tier_katalog')
     },
     kesimpulan: {
@@ -219,8 +217,6 @@ function loadStateToForm(state) {
 
   const pk = state.penilaian_kualitatif || {};
   document.getElementById('ql_kemampuan_cuti').value = pk.kemampuan_cuti || '-';
-  setVal('ql_konsistensi_dokumen', pk.konsistensi_dokumen);
-  setVal('ql_catatan_lokasi', pk.catatan_lokasi);
   document.getElementById('ql_tier_katalog').value = pk.tier_katalog || '-';
 
   const k = state.kesimpulan || {};
