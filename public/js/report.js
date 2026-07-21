@@ -146,12 +146,12 @@
     }
     const num = typeof val === 'number' ? val : parseInt(val, 10);
     if (isNaN(num)) {
-      return { label: 'NETRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
+      return { label: 'NEUTRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
     }
-    if (num >= 5) return { label: 'KUAT', displayVal: '+5', className: 'status-kuat', pct: 100 };
-    if (num >= 3) return { label: 'CUKUP', displayVal: '+3', className: 'status-cukup', pct: 75 };
-    if (num >= 0) return { label: 'NETRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
-    return { label: 'LEMAH', displayVal: '-3', className: 'status-kritis', pct: 25 };
+    if (num >= 5) return { label: 'STRONG', displayVal: '+5', className: 'status-kuat', pct: 100 };
+    if (num >= 3) return { label: 'MEDIUM', displayVal: '+3', className: 'status-cukup', pct: 75 };
+    if (num >= 0) return { label: 'NEUTRAL', displayVal: '0', className: 'status-perhatian', pct: 50 };
+    return { label: 'WEAK', displayVal: '-3', className: 'status-kritis', pct: 25 };
   }
 
   function renderPillarRow(label, scoreVal, catatanVal) {
@@ -196,7 +196,7 @@
     let totalDisplay = k.total_skor !== undefined ? String(k.total_skor) : '0';
     let isRF = totalDisplay.includes('RF') || pekerjaan === 'RF' || skala_usaha === 'RF' || jabatan === 'RF' || lama_bekerja === 'RF' || penghasilan === 'RF' || bukti_dokumen === 'RF';
 
-    let totalStatusLabel = 'CUKUP';
+    let totalStatusLabel = 'MEDIUM';
     let totalClassName = 'status-cukup';
     const numTotal = parseInt(totalDisplay, 10) || 0;
 
@@ -204,16 +204,16 @@
       totalStatusLabel = 'RED FLAG';
       totalClassName = 'status-kritis';
     } else if (numTotal >= 20) {
-      totalStatusLabel = 'KUAT';
+      totalStatusLabel = 'STRONG';
       totalClassName = 'status-kuat';
     } else if (numTotal >= 10) {
-      totalStatusLabel = 'CUKUP';
+      totalStatusLabel = 'MEDIUM';
       totalClassName = 'status-cukup';
     } else if (numTotal >= 0) {
-      totalStatusLabel = 'PERLU PERHATIAN';
+      totalStatusLabel = 'NEUTRAL';
       totalClassName = 'status-perhatian';
     } else {
-      totalStatusLabel = 'KRITIS';
+      totalStatusLabel = 'WEAK';
       totalClassName = 'status-kritis';
     }
 

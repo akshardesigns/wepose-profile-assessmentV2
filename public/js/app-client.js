@@ -46,11 +46,11 @@ function setVal(id, v) { const el = document.getElementById(id); if (el) el.valu
 
 /* ---------------- Stepper Component Helper ---------------- */
 const SCORE_OPTIONS = [
-  { label: "+5", value: 5 },
-  { label: "+3", value: 3 },
-  { label: "0", value: 0 },
-  { label: "-3", value: -3 },
-  { label: "RF", value: "RF" }
+  { label: "+5", category: "STRONG", value: 5 },
+  { label: "+3", category: "MEDIUM", value: 3 },
+  { label: "0", category: "NEUTRAL", value: 0 },
+  { label: "-3", category: "WEAK", value: -3 },
+  { label: "RF", category: "RED FLAG", value: "RF" }
 ];
 
 function findScoreOptionIndex(val) {
@@ -82,7 +82,9 @@ function setStepperValue(id, val) {
     hiddenInput.value = selectedOpt.value;
   }
   if (displayEl) {
-    displayEl.textContent = selectedOpt.label;
+    displayEl.innerHTML = selectedOpt.value === 'RF'
+      ? `<span class="stepper-val-txt">RF</span> <span class="stepper-cat-txt">(RED FLAG)</span>`
+      : `<span class="stepper-val-txt">${selectedOpt.label}</span> <span class="stepper-cat-txt">(${selectedOpt.category})</span>`;
     if (selectedOpt.value === 'RF') {
       displayEl.classList.add('is-rf');
     } else {

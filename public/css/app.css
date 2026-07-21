@@ -109,14 +109,14 @@ details.section[open] summary .chev{transform:rotate(90deg);}
   background: #fff;
   overflow: hidden;
   user-select: none;
-  width: 150px;
+  width: 175px;
   flex-shrink: 0;
 }
 .stepper-btn {
   border: none;
   background: #f1f4f5;
   color: var(--navy);
-  width: 38px;
+  width: 34px;
   height: 36px;
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
@@ -145,14 +145,25 @@ details.section[open] summary .chev{transform:rotate(90deg);}
   text-align: center;
   font-family: 'Poppins', sans-serif;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--navy);
   padding: 0 4px;
   transition: color 0.15s ease;
+  white-space: nowrap;
+}
+.stepper-val-txt {
+  font-weight: 800;
+}
+.stepper-cat-txt {
+  font-size: 10px;
+  font-weight: 700;
+  color: #7c8c92;
 }
 .stepper-value.is-rf {
   color: #a8402e;
-  font-weight: 900;
+}
+.stepper-value.is-rf .stepper-cat-txt {
+  color: #a8402e;
 }
 .pillar-catatan {
   margin-bottom: 0;
