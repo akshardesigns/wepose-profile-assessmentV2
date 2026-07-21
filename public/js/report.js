@@ -188,7 +188,7 @@
     return 'badge-sedang';
   }
 
-  function skorKuantitatifPageHTML(state, pageNum, totalPages) {
+  function kuantitatifKualitatifPageHTML(state, pageNum, totalPages) {
     const paspor = (state.cover && state.cover.paspor) || '(isi nomor disini)';
     const sq = state.skor_kuantitatif || {};
     
@@ -221,20 +221,24 @@
       totalClassName = 'status-perhatian';
     }
 
+    const pk = state.penilaian_kualitatif || {};
+    const kemampuanCuti = pk.kemampuan_cuti || '-';
+    const tierKatalog = pk.tier_katalog || '-';
+
     return `
-  <div class="page dim" id="pageSkorKuantitatif">
+  <div class="page dim" id="pageKuantitatifKualitatif">
     <div class="page-inner">
       <div class="page-head">
         <div class="eyebrow-sm">PROFILE ASSESSMENT REPORT</div>
         <div class="passport-chip">${iconDoc()}<div>NOMOR PASSPOR<br><b>${esc(paspor)}</b></div></div>
       </div>
-      <div class="section-title-row">
+      <div class="section-title-row" style="margin-bottom: 3.5mm;">
         <div class="roman-pill">I</div>
-        <h2>1. Skor Kuantitatif</h2>
+        <h2>Skor Kuantitatif, Penilaian Kualitatif &amp; Kategori</h2>
       </div>
 
-      <div class="box box-temuan" style="margin-bottom: 5mm; padding: 5mm 6.5mm;">
-        <h3 style="margin-bottom: 3.5mm;">Rincian Nilai &amp; Catatan 6 Pilar Assessment</h3>
+      <div class="box box-temuan" style="margin-bottom: 3.5mm; padding: 3.5mm 5.5mm;">
+        <h3 style="margin-bottom: 2.5mm;">Rincian Nilai &amp; Catatan 6 Pilar Assessment</h3>
         <div class="status-bars-container">
           ${renderPillarRow('Kekuatan Pekerjaan', pekerjaan, sq.pekerjaan_catatan)}
           ${renderPillarRow('Skala Usaha', skala_usaha, sq.skala_usaha_catatan, true)}
@@ -245,62 +249,36 @@
         </div>
       </div>
 
-      <div class="stat-row">
-        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 4.5mm 6.5mm;">
+      <div class="stat-row" style="margin-bottom: 3.5mm; gap: 3.5mm;">
+        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 3mm 5.5mm;">
           <div>
-            <div class="lbl" style="margin-bottom:1mm;">Total Skor Kuantitatif</div>
-            <div class="val" style="font-size:22pt; line-height:1.1;">${totalDisplay} <span style="font-size:11pt; color:#7c8c92; font-weight:normal;">/ 27</span></div>
+            <div class="lbl" style="margin-bottom:0.5mm;">Total Skor Kuantitatif</div>
+            <div class="val" style="font-size:18pt; line-height:1.1;">${totalDisplay} <span style="font-size:10pt; color:#7c8c92; font-weight:normal;">/ 27</span></div>
           </div>
           <div>
-            <div class="lbl" style="text-align:right; margin-bottom:2mm;">Tingkat Kesiapan</div>
-            <span class="status-badge ${totalClassName}" style="padding:2mm 5mm; font-size:10.5pt; font-weight:800; border-radius:20mm; display:inline-block;">${totalStatusLabel}</span>
+            <div class="lbl" style="text-align:right; margin-bottom:1.5mm;">Tingkat Kesiapan</div>
+            <span class="status-badge ${totalClassName}" style="padding:1.5mm 4.5mm; font-size:9.5pt; font-weight:800; border-radius:20mm; display:inline-block;">${totalStatusLabel}</span>
           </div>
         </div>
-      </div>
-
-    </div>
-    <div class="page-footer"><span>WEPOSE</span><span>Pages ${pageNum} of ${totalPages}</span></div>
-  </div>`;
-  }
-
-  function penilaianKualitatifPageHTML(state, pageNum, totalPages) {
-    const paspor = (state.cover && state.cover.paspor) || '(isi nomor disini)';
-    const pk = state.penilaian_kualitatif || {};
-    const kemampuanCuti = pk.kemampuan_cuti || '-';
-    const tierKatalog = pk.tier_katalog || '-';
-
-    return `
-  <div class="page dim" id="pagePenilaianKualitatif">
-    <div class="page-inner">
-      <div class="page-head">
-        <div class="eyebrow-sm">PROFILE ASSESSMENT REPORT</div>
-        <div class="passport-chip">${iconDoc()}<div>NOMOR PASSPOR<br><b>${esc(paspor)}</b></div></div>
-      </div>
-      <div class="section-title-row">
-        <div class="roman-pill">II</div>
-        <h2>2. Penilaian Kualitatif &amp; Kategori</h2>
-      </div>
-
-      <div class="stat-row" style="margin-bottom: 5mm;">
-        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 4.5mm 6mm;">
+        <div class="stat-card" style="display:flex; align-items:center; justify-content:space-between; padding: 3mm 5.5mm;">
           <div>
-            <div class="lbl" style="margin-bottom:1.5mm;">Kemampuan Cuti</div>
+            <div class="lbl" style="margin-bottom:1mm;">Kemampuan Cuti</div>
             <span class="badge ${getKualitatifBadgeClass(kemampuanCuti)}">${esc(kemampuanCuti)}</span>
           </div>
           <div style="text-align:right;">
-            <div class="lbl" style="margin-bottom:1.5mm;">Tier Katalog</div>
+            <div class="lbl" style="margin-bottom:1mm;">Tier Katalog</div>
             <span class="badge badge-sedang" style="background:#eef1f2; color:var(--navy); font-weight:800;">${esc(tierKatalog)}</span>
           </div>
         </div>
       </div>
 
-      <div class="box box-temuan" style="margin-bottom: 4mm;">
-        <h3>KONSISTENSI DOKUMEN</h3>
+      <div class="box box-temuan" style="margin-bottom: 3mm; padding: 3.5mm 5.5mm;">
+        <h3 style="margin-bottom: 1.5mm;">KONSISTENSI DOKUMEN</h3>
         ${paragraph(pk.konsistensi_dokumen)}
       </div>
 
-      <div class="box box-dimata" style="margin-bottom: 4mm;">
-        <h3>CATATAN LOKASI</h3>
+      <div class="box box-dimata" style="margin-bottom: 3mm; padding: 3.5mm 5.5mm;">
+        <h3 style="margin-bottom: 1.5mm;">CATATAN LOKASI</h3>
         ${paragraph(pk.catatan_lokasi)}
       </div>
 
@@ -322,8 +300,8 @@
         <div class="passport-chip">${iconDoc()}<div>NOMOR PASSPOR<br><b>${esc(paspor)}</b></div></div>
       </div>
       <div class="section-title-row">
-        <div class="roman-pill">✓</div>
-        <h2>3. Analisis, Kesimpulan &amp; Rekomendasi</h2>
+        <div class="roman-pill">II</div>
+        <h2>Analisis, Kesimpulan &amp; Rekomendasi</h2>
       </div>
 
       <div class="stat-row" style="margin-bottom: 5mm;">
@@ -348,12 +326,11 @@
   }
 
   function renderAllPagesHTML(state) {
-    const total = 4;
+    const total = 3;
     let html = '';
     html += coverPageHTML(state);
-    html += skorKuantitatifPageHTML(state, 2, total);
-    html += penilaianKualitatifPageHTML(state, 3, total);
-    html += kesimpulanPageHTML(state, 4, total);
+    html += kuantitatifKualitatifPageHTML(state, 2, total);
+    html += kesimpulanPageHTML(state, 3, total);
     return html;
   }
 
@@ -417,7 +394,7 @@
     IDN_MONTHS, ROMAN, DIM_NAMES,
     esc, fmtDateID, addMonths, bulletList, paragraph,
     buildEmptyState, emptyDim,
-    coverPageHTML, skorKuantitatifPageHTML, penilaianKualitatifPageHTML, kesimpulanPageHTML,
+    coverPageHTML, kuantitatifKualitatifPageHTML, kesimpulanPageHTML,
     renderAllPagesHTML, autofitAll, waitForImages
   };
 })(typeof window !== 'undefined' ? window : globalThis);
