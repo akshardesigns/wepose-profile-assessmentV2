@@ -196,25 +196,22 @@
     let totalDisplay = k.total_skor !== undefined ? String(k.total_skor) : '0';
     let isRF = totalDisplay.includes('RF') || pekerjaan === 'RF' || skala_usaha === 'RF' || jabatan === 'RF' || lama_bekerja === 'RF' || penghasilan === 'RF' || bukti_dokumen === 'RF';
 
-    let totalStatusLabel = 'MEDIUM';
+    let totalStatusLabel = 'CUKUP';
     let totalClassName = 'status-cukup';
     const numTotal = parseInt(totalDisplay, 10) || 0;
 
-    if (isRF) {
-      totalStatusLabel = 'RED FLAG';
+    if (isRF || numTotal <= 0) {
+      totalStatusLabel = 'KRITIS';
       totalClassName = 'status-kritis';
-    } else if (numTotal >= 20) {
-      totalStatusLabel = 'STRONG';
+    } else if (numTotal >= 22) {
+      totalStatusLabel = 'KUAT';
       totalClassName = 'status-kuat';
     } else if (numTotal >= 10) {
-      totalStatusLabel = 'MEDIUM';
+      totalStatusLabel = 'CUKUP';
       totalClassName = 'status-cukup';
-    } else if (numTotal >= 0) {
-      totalStatusLabel = 'NEUTRAL';
+    } else if (numTotal >= 1) {
+      totalStatusLabel = 'PERLU PERHATIAN';
       totalClassName = 'status-perhatian';
-    } else {
-      totalStatusLabel = 'WEAK';
-      totalClassName = 'status-kritis';
     }
 
     return `
